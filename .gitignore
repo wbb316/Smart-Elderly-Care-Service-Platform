@@ -1,0 +1,32 @@
+# Java
+target/
+*.class
+*.jar
+*.war
+*.log
+.idea/
+*.iml
+
+# Node
+node_modules/
+dist/
+
+# IDE
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Maven
+*.log
+
+# Temp
+*.tmp
+*.bak
+
+# Sensitive config
+application-druid.yml

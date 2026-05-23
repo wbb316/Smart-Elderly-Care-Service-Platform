@@ -1,0 +1,40 @@
+.success-page {
+    background: #fff;
+    min-height: 100vh;
+}
+
+.success-content {
+    text-align: center;
+    padding-top: 120rpx;
+}
+.success-img {
+    width: 70px;
+    height: 70px;
+}
+.success-title {
+    font-size: 24px;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 20rpx;
+}
+.success-desc {
+    font-size: 14px;
+    color: #999;
+    display: block;
+    margin-bottom: 40rpx;
+    padding: 0 40rpx;
+}
+
+.btn-group {
+    display: flex;
+    justify-content: center;
+    gap: 30rpx;
+}
+.btn-outline {
+    border: 1rpx solid #999;
+    color: #333;
+    background: #fff;
+    border-radius: 50rpx;
+    padding: 20rpx 60rpx;
+    font-size: 16px;
+}

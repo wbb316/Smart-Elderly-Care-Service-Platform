@@ -1,0 +1,41 @@
+<view class="container">
+  <!-- 房型图片 -->
+  <image class="room-img" src="{{roomInfo.photo}}" mode="aspectFill"></image>
+
+  <!-- 房型信息卡片 -->
+  <view class="info-card">
+    <text class="title">{{roomInfo.name}}</text>
+    <text class="desc">{{roomInfo.introduction}}</text>
+    <text class="price">参考价格：{{roomInfo.price}} 元/月</text>
+
+    <!-- 状态标签 -->
+    <view class="status-box">
+      <view wx:if="{{roomInfo.status === 1}}" class="status-tag status-ok">
+        可预订
+      </view>
+      <view wx:else class="status-tag status-no">
+        已满房
+      </view>
+    </view>
+
+    <!-- 预定按钮 -->
+    <button wx:if="{{roomInfo.status === 1}}" class="book-btn" bindtap="showBooking">立即预定</button>
+  </view>
+
+  <!-- 日期选择弹窗 -->
+  <view wx:if="{{showDatePopup}}" class="popup-mask" bindtap="closePopup">
+    <view class="popup-box" catchtap="">
+      <text class="popup-title">选择预定日期</text>
+      <picker mode="date" value="{{bookingDate}}" start="{{today}}" bindchange="onDateChange">
+        <view class="date-picker">
+          <text wx:if="{{bookingDate}}">{{bookingDate}}</text>
+          <text wx:else class="placeholder">请选择日期</text>
+        </view>
+      </picker>
+      <view class="popup-btns">
+        <button class="btn-cancel" bindtap="closePopup">取消</button>
+        <button class="btn-confirm" bindtap="confirmBooking">确认预定</button>
+      </view>
+    </view>
+  </view>
+</view>

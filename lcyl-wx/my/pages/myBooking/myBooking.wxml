@@ -1,0 +1,25 @@
+<view class="container">
+  <view wx:if="{{bookingList.length === 0 && !loading}}" class="empty">
+    <text class="empty-text">暂无预定记录</text>
+  </view>
+
+  <view wx:for="{{bookingList}}" wx:key="id" class="card">
+    <view class="card-header">
+      <text class="booking-no">预定编号：{{item.bookingNo}}</text>
+      <text class="status status-{{item.status === '1' ? 'paid' : item.status === '0' ? 'pending' : 'closed'}}">{{item.statusText}}</text>
+    </view>
+    <view class="card-body">
+      <image class="room-img" src="{{item.photo}}" mode="aspectFill"></image>
+      <view class="info">
+        <text class="room-name">{{item.roomName}}</text>
+        <text class="date">预定日期：{{item.bookingDate}}</text>
+        <text class="remark">备注：{{item.remark}}</text>
+        <text class="price">¥{{item.price}}/月</text>
+      </view>
+    </view>
+    <view class="card-footer">
+      <text class="time">提交时间：{{item.createTime}}</text>
+      <button wx:if="{{item.status === '0'}}" class="pay-btn" bindtap="handlePay" data-id="{{item.id}}">去支付</button>
+    </view>
+  </view>
+</view>

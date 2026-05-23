@@ -1,0 +1,85 @@
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    druid:
+      master:
+        url: jdbc:mysql://localhost:3306/ry-vue?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+        username: root
+        password: W15873765276
+      slave:
+        enabled: false
+      initialSize: 5
+      minIdle: 10
+      maxActive: 20
+      maxWait: 60000
+      connectTimeout: 30000
+      socketTimeout: 60000
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+      maxEvictableIdleTimeMillis: 900000
+      validationQuery: SELECT 1 FROM DUAL
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+  redis:
+    host: localhost
+    port: 6379
+    database: 15
+    timeout: 10s
+    lettuce:
+      pool:
+        min-idle: 0
+        max-idle: 8
+        max-active: 8
+        max-wait: -1ms
+
+  activiti:
+    database-schema-update: none
+    async-executor-activate: false
+    check-process-definitions: false
+    db-history-used: false
+    history-level: none
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+  typeAliasesPackage: com.lcyl.**.domain
+  mapperLocations: classpath*:mapper/**/*Mapper.xml
+  not-empty: true
+  configLocation: classpath:mybatis/mybatis-config.xml
+
+pagehelper:
+  helperDialect: mysql
+  supportMethodsArguments: true
+  params: count=countSql
+
+token:
+  header: Authorization
+  secret: abcdefghijklmnopqrstuvwxyz
+  expireTime: 30000
+
+referer:
+  enabled: false
+  allowed-domains: localhost,127.0.0.1
+
+ruoyi:
+  name: RuoYi
+  version: 3.9.1
+  copyrightYear: 2026
+  profile: D:/WBB_JAVA/ruoyi/uploadPath
+  addressEnabled: false
+  captchaType: math
+user:
+  password:
+    # 密码最大错误次数
+    maxRetryCount: 10
+    # 密码锁定时间（默认10分钟）
+    lockTime: 10
+xss:
+  # 过滤开关
+  enabled: true
+  # 排除链接（多个用逗号分隔）
+  excludes: /system/notice
+  # 匹配链接
+  urlPatterns: /system/*,/monitor/*,/tool/*

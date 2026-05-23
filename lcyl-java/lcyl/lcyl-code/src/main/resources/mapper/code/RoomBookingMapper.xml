@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lcyl.code.mapper.RoomBookingMapper">
+
+    <resultMap type="com.lcyl.code.domain.RoomBooking" id="RoomBookingResult">
+        <result property="id" column="id"/>
+        <result property="bookingNo" column="booking_no"/>
+        <result property="roomTypeId" column="room_type_id"/>
+        <result property="roomTypeName" column="room_type_name"/>
+        <result property="roomTypePhoto" column="room_type_photo"/>
+        <result property="price" column="price"/>
+        <result property="bookingDate" column="booking_date"/>
+        <result property="remark" column="remark"/>
+        <result property="memberId" column="member_id"/>
+        <result property="memberName" column="member_name"/>
+        <result property="status" column="status"/>
+        <result property="tradeStatus" column="trade_status"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectRoomBookingVo">
+        select id, booking_no, room_type_id, room_type_name, room_type_photo, price,
+               booking_date, remark, member_id, member_name, status, trade_status,
+               create_by, create_time, update_by, update_time
+        from lc_room_booking
+    </sql>
+
+    <select id="selectRoomBookingList" parameterType="com.lcyl.code.domain.RoomBooking" resultMap="RoomBookingResult">
+        <include refid="selectRoomBookingVo"/>
+        <where>
+            <if test="memberId != null"> and member_id = #{memberId}</if>
+            <if test="status != null and status != ''"> and status = #{status}</if>
+        </where>
+        order by id desc
+    </select>
+
+    <select id="selectRoomBookingById" parameterType="Long" resultMap="RoomBookingResult">
+        <include refid="selectRoomBookingVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertRoomBooking" parameterType="com.lcyl.code.domain.RoomBooking" useGeneratedKeys="true" keyProperty="id">
+        insert into lc_room_booking
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bookingNo != null">booking_no,</if>
+            <if test="roomTypeId != null">room_type_id,</if>
+            <if test="roomTypeName != null">room_type_name,</if>
+            <if test="roomTypePhoto != null">room_type_photo,</if>
+            <if test="price != null">price,</if>
+            <if test="bookingDate != null">booking_date,</if>
+            <if test="remark != null">remark,</if>
+            <if test="memberId != null">member_id,</if>
+            <if test="memberName != null">member_name,</if>
+            <if test="status != null">status,</if>
+            <if test="tradeStatus != null">trade_status,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bookingNo != null">#{bookingNo},</if>
+            <if test="roomTypeId != null">#{roomTypeId},</if>
+            <if test="roomTypeName != null">#{roomTypeName},</if>
+            <if test="roomTypePhoto != null">#{roomTypePhoto},</if>
+            <if test="price != null">#{price},</if>
+            <if test="bookingDate != null">#{bookingDate},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="memberId != null">#{memberId},</if>
+            <if test="memberName != null">#{memberName},</if>
+            <if test="status != null">#{status},</if>
+            <if test="tradeStatus != null">#{tradeStatus},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateRoomBooking" parameterType="com.lcyl.code.domain.RoomBooking">
+        update lc_room_booking
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="status != null">status = #{status},</if>
+            <if test="tradeStatus != null">trade_status = #{tradeStatus},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteRoomBookingById" parameterType="Long">
+        delete from lc_room_booking where id = #{id}
+    </delete>
+
+    <delete id="deleteRoomBookingByIds" parameterType="String">
+        delete from lc_room_booking where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,11 @@
+<view class="success-page">
+  <view class="success-content">
+    <image class="success-img" src="/images/success.png"></image>
+    <text class="success-title">预定成功</text>
+    <text class="success-desc">{{roomName}}，预定日期{{bookingDate}}，请耐心等待管家联系~~</text>
+
+    <view class="btn-group">
+      <button class="btn-outline" bindtap="backToHome">返回首页</button>
+    </view>
+  </view>
+</view>
