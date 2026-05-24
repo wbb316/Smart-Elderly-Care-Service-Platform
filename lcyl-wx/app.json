@@ -64,7 +64,10 @@
       "name": "family",
       "pages": [
         "pages/addfamily/addfamily",
-        "pages/mybill/mybill"
+        "pages/mybill/mybill",
+        "pages/leave/list/list",
+        "pages/leave/apply/apply",
+        "pages/leave/detail/detail"
       ]
     },
     {

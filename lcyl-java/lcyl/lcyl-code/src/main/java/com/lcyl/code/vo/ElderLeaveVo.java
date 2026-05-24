@@ -16,6 +16,11 @@ public class ElderLeaveVo {
     private Long id;
 
     /**
+     * 老人ID
+     */
+    private Long elderId;
+
+    /**
      * 单据编号
      */
     private String orderNo;

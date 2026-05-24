@@ -2,12 +2,14 @@ package com.lcyl.code.service.impl;
 
 import com.lcyl.code.domain.ElderLeave;
 import com.lcyl.code.domain.ElderLeaveApproveRecord;
+import com.lcyl.code.domain.Member;
 import com.lcyl.code.dto.ElderLeaveApproveDto;
 import com.lcyl.code.dto.ElderLeaveDto;
 import com.lcyl.code.dto.ElderLeaveResubmitDto;
 import com.lcyl.code.dto.ElderLeaveSubmitDto;
 import com.lcyl.code.mapper.ElderLeaveApproveRecordMapper;
 import com.lcyl.code.mapper.ElderLeaveMapper;
+import com.lcyl.code.mapper.MemberMapper;
 import com.lcyl.code.service.IElderLeaveService;
 import com.lcyl.code.vo.ElderLeaveFormVo;
 import com.lcyl.code.vo.ElderLeaveTodoVo;
@@ -16,6 +18,7 @@ import com.lcyl.code.vo.ElderOptionVo;
 import com.lcyl.common.exception.ServiceException;
 import com.lcyl.common.utils.DateUtils;
 import com.lcyl.common.utils.SecurityUtils;
+import com.lcyl.common.utils.UserThreadLocal;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.runtime.ProcessInstance;
@@ -25,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.Resource;
 import java.util.*;
 
 /**
@@ -48,6 +52,12 @@ public class ElderLeaveServiceImpl implements IElderLeaveService {
 
     @Autowired
     private TaskService taskService;
+
+    @Resource
+    private MemberMapper memberMapper;
+
+//    @Resource
+//    private IElderLeaveService elderLeaveService;
 
     @Autowired
     private ElderLeaveApproveRecordMapper elderLeaveApproveRecordMapper;
@@ -278,6 +288,7 @@ public class ElderLeaveServiceImpl implements IElderLeaveService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int submitElderLeave(ElderLeaveSubmitDto dto) {
+
         ElderLeaveFormVo formVo = getLeaveFormInfoByElderId(dto.getElderId());
 
         // 校验时间
@@ -318,9 +329,14 @@ public class ElderLeaveServiceImpl implements IElderLeaveService {
         elderLeave.setDelFlag("0");
 
         //获取登录的用户的相关信息
-        elderLeave.setApplyUserId(SecurityUtils.getUserId());
-        elderLeave.setApplyUserName(SecurityUtils.getUsername());
-        elderLeave.setCreateBy(SecurityUtils.getUsername());
+        Long memberId = UserThreadLocal.getUserId();
+        Member member = memberMapper.selectById(memberId);
+        if (member == null) {
+            throw new RuntimeException("获取用户信息失败");
+        }
+        elderLeave.setApplyUserId(member.getId().longValue());
+        elderLeave.setApplyUserName(member.getName());
+        elderLeave.setCreateBy(member.getName());
         elderLeave.setCreateTime(new Date());
 
         // 插入主表
@@ -335,7 +351,7 @@ public class ElderLeaveServiceImpl implements IElderLeaveService {
         variables.put("nursingLevel", elderLeave.getNursingLevel());
 
         // 当前申请人（护理员）
-        variables.put("huliyuan", SecurityUtils.getUsername());
+        variables.put("huliyuan", member.getName());
 
         // 写死了
         variables.put("zhuguan", "zhuguan");
@@ -393,7 +409,7 @@ public class ElderLeaveServiceImpl implements IElderLeaveService {
             elderLeave.setCurrentTaskName(null);
         }
 
-        elderLeave.setUpdateBy(SecurityUtils.getUsername());
+        elderLeave.setUpdateBy(member.getName());
         elderLeave.setUpdateTime(new Date());
 
         // 更新主表

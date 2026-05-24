@@ -68,4 +68,8 @@ export * from "./code/recharge";
 
 // 老人模块
 export * from "./system/elder";
+export * from "./system/level";
+export * from "./system/item";
+export * from "./system/leave";
+export * from "./system/record";
 

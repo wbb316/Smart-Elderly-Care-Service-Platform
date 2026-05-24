@@ -72,7 +72,7 @@ public class RetreatFinishServiceImpl implements RetreatFinishService {
         // 3. 合同状态 → 已解除
         Contract contract = contractMapper.selectContractById(elderId);
         if (contract != null) {
-            contract.setStatus(2); // 2=已解除
+            contract.setStatus(2L); // 2=已解除
             contract.setReleaseDate(DateUtils.getNowDate());
             contractMapper.updateContract(contract);
         }
@@ -90,8 +90,8 @@ public class RetreatFinishServiceImpl implements RetreatFinishService {
         // 6. 关闭所有未完成服务订单
         List<ServiceOrder> orders = serviceOrderMapper.selectUnfinishedByElderId(elderId);
         for (ServiceOrder order : orders) {
-            order.setOrderStatus("5");      // 5=已关闭
-            order.setTradeStatus("5");      // 5=已关闭
+            order.setOrderStatus("5L");      // 5=已关闭
+            order.setTradeStatus("5L");      // 5=已关闭
             serviceOrderMapper.updateServiceOrder(order);
         }
 

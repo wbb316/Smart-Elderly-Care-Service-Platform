@@ -77,6 +77,7 @@
 
     <select id="selectElderLeaveList" parameterType="com.lcyl.code.dto.ElderLeaveDto" resultType="com.lcyl.code.vo.ElderLeaveVo">
         select id,
+        elder_id elderId,
         order_no orderNo,
         elder_name elderName,
         elder_id_card elderIdCard,
@@ -103,31 +104,26 @@
             <if test="leaveStartTime != null ">and leave_start_time &gt;= #{leaveStartTime}</if>
             <if test="plannedReturnTime != null ">and planned_return_time &lt;= #{plannedReturnTime}</if>
 
-            <choose>
-                <when test="status != null and status != ''">
-                    <choose>
-                        <when test="status == 'timeout'">
-                            and status = 'approved'
-                            and (is_returned = 0 or is_returned is null)
-                            and planned_return_time &lt; NOW()
-                        </when>
-                        <when test="status == 'leaving'">
-                            and status = 'approved'
-                            and (is_returned = 0 or is_returned is null)
-                            and planned_return_time &gt;= NOW()
-                        </when>
-                        <when test="status == 'returned'">
-                            and (is_returned = 1 or status = 'returned')
-                        </when>
-                        <otherwise>
-                            and status = #{status}
-                        </otherwise>
-                    </choose>
-                </when>
-                <otherwise>
-                    and (status = 'approved' or status = 'returned' or is_returned = 1)
-                </otherwise>
-            </choose>
+            <if test="status != null and status != ''">
+                <choose>
+                    <when test="status == 'timeout'">
+                        and status = 'approved'
+                        and (is_returned = 0 or is_returned is null)
+                        and planned_return_time &lt; NOW()
+                    </when>
+                    <when test="status == 'leaving'">
+                        and status = 'approved'
+                        and (is_returned = 0 or is_returned is null)
+                        and planned_return_time &gt;= NOW()
+                    </when>
+                    <when test="status == 'returned'">
+                        and (is_returned = 1 or status = 'returned')
+                    </when>
+                    <otherwise>
+                        and status = #{status}
+                    </otherwise>
+                </choose>
+            </if>
 
             <if test="isReturned != null and (status == null or status == '')">and is_returned = #{isReturned}</if>
         </where>

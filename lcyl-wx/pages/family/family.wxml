@@ -18,6 +18,7 @@
     <view class="family-actions">
       <!-- <view class="action-btn" bindtap="goToHealth" data-id="{{item.id}}">健康数据</view> -->
       <view class="action-btn" bindtap="goToBill" data-id="{{item.id}}">我的账单</view>
+      <view class="action-btn" bindtap="goToLeave" data-id="{{item.id}}">请假</view>
     </view>
   </view>
 

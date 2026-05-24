@@ -1,12 +1,15 @@
 package com.lcyl.code.controller;
 
 import com.lcyl.code.domain.*;
+import com.lcyl.code.dto.*;
 import com.lcyl.code.dto.MemberProfileUpdateDto;
 import com.lcyl.code.domain.Bill;
 import com.lcyl.code.domain.LcReservation;
 import com.lcyl.code.domain.NursingItem;
 import com.lcyl.code.mapper.MemberMapper;
 import com.lcyl.code.service.*;
+import com.lcyl.code.vo.ElderLeaveVo;
+import com.lcyl.code.vo.ElderOptionVo;
 import com.lcyl.common.core.controller.BaseController;
 import com.lcyl.common.core.page.TableDataInfo;
 import com.lcyl.code.domain.dto.RoomBookingDTO;
@@ -15,21 +18,15 @@ import com.lcyl.code.domain.dto.WxRefundApplyDTO;
 
 import com.lcyl.code.domain.vo.MyVisitVo;
 import com.lcyl.code.service.IBillService;
-import com.lcyl.code.domain.vo.MyVisitVo;
-import com.lcyl.code.service.IBillService;
 import com.lcyl.common.utils.Result;
 import com.lcyl.system.domain.Contract;
 import com.lcyl.system.domain.LcRoomType;
 
-import com.lcyl.code.domain.vo.MyVisitVo;
-import com.lcyl.code.service.IBillService;
 import com.lcyl.system.domain.dto.AddInfo;
 import com.lcyl.code.domain.dto.UserLoginRequestDto;
 import com.lcyl.common.core.domain.AjaxResult;
 import com.lcyl.common.utils.UserThreadLocal;
 import com.lcyl.system.domain.Elder;
-import com.lcyl.system.domain.dto.FlatBedDTO;
-import com.lcyl.system.domain.dto.FloorRoomBedDTO;
 import com.lcyl.system.domain.vo.BedVO;
 import com.lcyl.system.service.BedService;
 import com.lcyl.system.service.IContractService;
@@ -76,6 +73,9 @@ public class WxLoginController extends BaseController {
 
     @Autowired
     private BedService bedService;
+
+    @Autowired
+    private IElderLeaveService elderLeaveService;
 
 
 
@@ -259,5 +259,111 @@ public class WxLoginController extends BaseController {
     @GetMapping("/myRoomBookings")
     public AjaxResult myRoomBookings() {
         return success(wxLoginService.getMyRoomBookings());
+    }
+
+    // ==================== 家属端请假接口 ====================
+
+    /**
+     * 获取可请假老人选项（仅返回当前家属绑定的老人）
+     */
+    @GetMapping("/leave/options")
+    public AjaxResult leaveOptions() {
+        Long memberId = UserThreadLocal.getUserId();
+        List<Elder> elders = elderService.selectElderByUser(memberId);
+        List<ElderOptionVo> options = elderLeaveService.selectElderOptions();
+        // 过滤：只保留当前家属绑定的老人
+        options.removeIf(opt -> elders.stream().noneMatch(e -> e.getId().equals(opt.getElderId())));
+        return success(options);
+    }
+
+    /**
+     * 获取老人请假预填信息
+     */
+    @GetMapping("/leave/formInfo/{elderId}")
+    public AjaxResult leaveFormInfo(@PathVariable Long elderId) {
+        checkElderBelongsToMember(elderId);
+        return success(elderLeaveService.getLeaveFormInfoByElderId(elderId));
+    }
+
+    /**
+     * 提交请假申请
+     */
+    @PostMapping("/leave/submit")
+    public AjaxResult leaveSubmit(@RequestBody ElderLeaveSubmitDto dto) {
+        checkElderBelongsToMember(dto.getElderId());
+        elderLeaveService.submitElderLeave(dto);
+        return success("提交成功");
+    }
+
+    /**
+     * 查询请假列表（仅返回当前家属绑定老人的请假记录）
+     */
+    @GetMapping("/leave/list")
+    public TableDataInfo leaveList(ElderLeaveDto dto) {
+        Long memberId = UserThreadLocal.getUserId();
+        List<Elder> elders = elderService.selectElderByUser(memberId);
+        List<Long> elderIds = elders.stream().map(Elder::getId).collect(java.util.stream.Collectors.toList());
+        if (elderIds.isEmpty()) {
+            return getDataTable(java.util.Collections.emptyList());
+        }
+        startPage();
+        List<ElderLeaveVo> allList = elderLeaveService.selectElderLeaveList(dto);
+        // 过滤：只保留当前家属绑定的老人
+        allList.removeIf(vo -> !elderIds.contains(vo.getElderId()));
+        return getDataTable(allList);
+    }
+
+    /**
+     * 获取请假详情
+     */
+    @GetMapping("/leave/{id}")
+    public AjaxResult leaveDetail(@PathVariable Long id) {
+        ElderLeave leave = elderLeaveService.selectElderLeaveById(id);
+        if (leave == null) {
+            return AjaxResult.error("请假单不存在");
+        }
+        checkElderBelongsToMember(leave.getElderId());
+        return success(leave);
+    }
+
+    /**
+     * 获取请假审批记录
+     */
+    @GetMapping("/leave/records/{leaveId}")
+    public AjaxResult leaveRecords(@PathVariable Long leaveId) {
+        ElderLeave leave = elderLeaveService.selectElderLeaveById(leaveId);
+        if (leave == null) {
+            return AjaxResult.error("请假单不存在");
+        }
+        checkElderBelongsToMember(leave.getElderId());
+        return success(elderLeaveService.selectApproveRecordList(leaveId));
+    }
+
+    /**
+     * 销假登记
+     */
+    @PutMapping("/leave/return")
+    public AjaxResult leaveReturn(@RequestBody ElderLeave elderLeave) {
+        ElderLeave exist = elderLeaveService.selectElderLeaveById(elderLeave.getId());
+        if (exist == null) {
+            return AjaxResult.error("请假单不存在");
+        }
+        checkElderBelongsToMember(exist.getElderId());
+        exist.setActualReturnTime(elderLeave.getActualReturnTime());
+        exist.setIsReturned(1);
+        elderLeaveService.updateElderLeave(exist);
+        return success("销假成功");
+    }
+
+    /**
+     * 校验老人是否属于当前登录的家属
+     */
+    private void checkElderBelongsToMember(Long elderId) {
+        Long memberId = UserThreadLocal.getUserId();
+        List<Elder> elders = elderService.selectElderByUser(memberId);
+        boolean belongs = elders.stream().anyMatch(e -> e.getId().equals(elderId));
+        if (!belongs) {
+            throw new com.lcyl.common.exception.ServiceException("无权操作该老人");
+        }
     }
 }

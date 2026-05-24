@@ -48,6 +48,13 @@ Page({
     });
   },
 
+  // 跳转请假列表
+  goToLeave(e) {
+    wx.navigateTo({
+      url: `/family/pages/leave/list/list`
+    });
+  },
+
   // 跳转绑定家人
   goToBind() {
     wx.navigateTo({
