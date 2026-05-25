@@ -1,0 +1,27 @@
+.detail-page { background: #f5f5f5; min-height: 100vh; padding-bottom: 120rpx; }
+.status-card { background: linear-gradient(135deg, #4D75FF, #6C8CFF); color: #fff; padding: 40rpx 30rpx; text-align: center; }
+.status-label { font-size: 36rpx; font-weight: bold; margin-bottom: 12rpx; }
+.elder-name { font-size: 32rpx; margin-bottom: 8rpx; }
+.order-no { font-size: 24rpx; opacity: 0.8; }
+.info-card { background: #fff; border-radius: 12rpx; padding: 24rpx; margin: 20rpx; }
+.card-title { font-size: 30rpx; font-weight: bold; color: #333; margin-bottom: 20rpx; padding-bottom: 16rpx; border-bottom: 1rpx solid #f0f0f0; }
+.info-row { display: flex; justify-content: space-between; font-size: 28rpx; color: #666; line-height: 2.2; }
+.info-row text { color: #999; }
+.record-item { padding: 16rpx 0; border-bottom: 1rpx solid #f5f5f5; }
+.record-item:last-child { border-bottom: none; }
+.record-top { display: flex; justify-content: space-between; align-items: center; }
+.record-user { font-size: 28rpx; color: #333; }
+.record-result { font-size: 24rpx; padding: 4rpx 16rpx; border-radius: 12rpx; background: #e8f5e9; color: #4caf50; }
+.record-result.reject { background: #ffebee; color: #f44336; }
+.record-opinion { font-size: 26rpx; color: #888; margin-top: 8rpx; }
+.record-time { font-size: 22rpx; color: #bbb; margin-top: 4rpx; }
+.back-btn { position: fixed; bottom: 30rpx; left: 30rpx; right: 30rpx; background: #ff9800; color: #fff; text-align: center; padding: 28rpx; border-radius: 50rpx; font-size: 32rpx; }
+.modal-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; }
+.modal-box { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 24rpx 24rpx 0 0; padding: 30rpx; z-index: 101; }
+.modal-title { font-size: 32rpx; font-weight: bold; text-align: center; margin-bottom: 30rpx; }
+.modal-body { margin-bottom: 30rpx; }
+.label { font-size: 28rpx; color: #333; margin-bottom: 12rpx; }
+.picker-val { font-size: 28rpx; color: #666; padding: 18rpx 20rpx; background: #f8f8f8; border-radius: 8rpx; }
+.modal-footer { display: flex; gap: 20rpx; }
+.btn-cancel { flex: 1; text-align: center; padding: 24rpx; border-radius: 50rpx; background: #f5f5f5; color: #666; font-size: 30rpx; }
+.btn-confirm { flex: 1; text-align: center; padding: 24rpx; border-radius: 50rpx; background: #4D75FF; color: #fff; font-size: 30rpx; }

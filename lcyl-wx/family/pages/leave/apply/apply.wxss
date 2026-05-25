@@ -1,0 +1,12 @@
+.apply-page { padding: 20rpx; background: #f5f5f5; min-height: 100vh; }
+.form-card { background: #fff; border-radius: 16rpx; padding: 30rpx; margin-bottom: 30rpx; }
+.form-item { margin-bottom: 30rpx; }
+.label { font-size: 28rpx; color: #333; margin-bottom: 12rpx; }
+.required { color: #e74c3c; margin-left: 4rpx; }
+.picker-val { font-size: 28rpx; color: #666; padding: 18rpx 20rpx; background: #f8f8f8; border-radius: 8rpx; }
+.input { font-size: 28rpx; padding: 18rpx 20rpx; background: #f8f8f8; border-radius: 8rpx; width: 100%; box-sizing: border-box; }
+.textarea { font-size: 28rpx; padding: 18rpx 20rpx; background: #f8f8f8; border-radius: 8rpx; width: 100%; box-sizing: border-box; height: 150rpx; }
+.elder-info-card { background: #f0f7ff; border-radius: 8rpx; padding: 20rpx; margin-bottom: 30rpx; }
+.info-row { font-size: 26rpx; color: #666; line-height: 1.6; }
+.info-row text { color: #333; }
+.submit-btn { background: #4D75FF; color: #fff; text-align: center; padding: 28rpx; border-radius: 50rpx; font-size: 32rpx; margin: 40rpx 20rpx; }

@@ -1,0 +1,29 @@
+<view class="list-page">
+  <!-- Tab 切换 -->
+  <scroll-view scroll-x class="tab-bar">
+    <view wx:for="{{tabs}}" wx:key="value" class="tab-item {{currentTab === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="switchTab">{{item.label}}</view>
+  </scroll-view>
+
+  <!-- 请假列表 -->
+  <view wx:if="{{leaveList.length > 0}}" class="leave-list">
+    <view wx:for="{{leaveList}}" wx:key="id" class="leave-card" bindtap="goDetail" data-id="{{item.id}}">
+      <view class="card-top">
+        <view class="elder-name">{{item.elderName}}</view>
+        <view class="status-tag {{item.statusClass}}">{{item.statusLabel}}</view>
+      </view>
+      <view class="card-body">
+        <view class="info-line">开始：{{item.startTime}}</view>
+        <view class="info-line">结束：{{item.endTime}}</view>
+        <view class="info-line">天数：{{item.leaveDays}} 天</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{leaveList.length === 0 && !loading}}" class="empty">
+    <text>暂无请假记录</text>
+  </view>
+
+  <!-- 发起按钮 -->
+  <view class="apply-btn" bindtap="goApply">发起请假</view>
+</view>

@@ -1,0 +1,53 @@
+<view class="detail-page" wx:if="{{leave}}">
+  <!-- 状态卡片 -->
+  <view class="status-card">
+    <view class="status-label">{{leave.statusLabel}}</view>
+    <view class="elder-name">{{leave.elderName}}</view>
+    <view class="order-no">单号：{{leave.orderNo}}</view>
+  </view>
+
+  <!-- 基本信息 -->
+  <view class="info-card">
+    <view class="card-title">请假信息</view>
+    <view class="info-row"><text>开始时间</text><view>{{leave.startTime}}</view></view>
+    <view class="info-row"><text>预计返回</text><view>{{leave.endTime}}</view></view>
+    <view class="info-row"><text>请假天数</text><view>{{leave.leaveDays}} 天</view></view>
+    <view class="info-row"><text>陪同人</text><view>{{leave.companionName || '无'}}（{{leave.companionType || '无'}}）</view></view>
+    <view class="info-row"><text>请假原因</text><view>{{leave.leaveReason}}</view></view>
+    <view class="info-row" wx:if="{{leave.actualReturn}}"><text>实际返回</text><view>{{leave.actualReturn}}</view></view>
+  </view>
+
+  <!-- 审批记录 -->
+  <view class="info-card" wx:if="{{records.length > 0}}">
+    <view class="card-title">审批记录</view>
+    <view wx:for="{{records}}" wx:key="id" class="record-item">
+      <view class="record-top">
+        <text class="record-user">{{item.approveUserName}}（{{item.approveRoleName}}）</text>
+        <text class="record-result {{item.approveResult === 'approved' ? 'pass' : item.approveResult === 'rejected' ? 'reject' : ''}}">
+          {{item.approveResult === 'approved' ? '通过' : item.approveResult === 'rejected' ? '拒绝' : '驳回'}}
+        </text>
+      </view>
+      <view class="record-opinion" wx:if="{{item.approveOpinion}}">意见：{{item.approveOpinion}}</view>
+      <view class="record-time">{{item.approveTime}}</view>
+    </view>
+  </view>
+
+  <!-- 销假按钮（请假中/超时未归状态显示） -->
+  <view wx:if="{{leave.status === 'leaving' || leave.status === 'timeout'}}" class="back-btn" bindtap="showBack">销假登记</view>
+</view>
+
+<!-- 销假弹窗 -->
+<view class="modal-mask" wx:if="{{showBackModal}}" bindtap="hideBack"></view>
+<view class="modal-box" wx:if="{{showBackModal}}">
+  <view class="modal-title">销假登记</view>
+  <view class="modal-body">
+    <view class="label">实际返回时间</view>
+    <picker mode="date" bindchange="onReturnTimeChange">
+      <view class="picker-val">{{actualReturnTime || '请选择'}}</view>
+    </picker>
+  </view>
+  <view class="modal-footer">
+    <view class="btn-cancel" bindtap="hideBack">取消</view>
+    <view class="btn-confirm" bindtap="confirmBack">确认销假</view>
+  </view>
+</view>

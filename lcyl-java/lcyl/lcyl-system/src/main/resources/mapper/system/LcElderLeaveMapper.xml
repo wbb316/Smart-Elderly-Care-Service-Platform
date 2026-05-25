@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lcyl.system.mapper.LcElderLeaveMapper">
+
+    <resultMap type="LcElderLeave" id="LcElderLeaveResult">
+        <result property="id"    column="id"    />
+        <result property="orderNo"    column="order_no"    />
+        <result property="elderId"    column="elder_id"    />
+        <result property="elderName"    column="elder_name"    />
+        <result property="elderIdCard"    column="elder_id_card"    />
+        <result property="phone"    column="phone"    />
+        <result property="nursingLevel"    column="nursing_level"    />
+        <result property="bedNo"    column="bed_no"    />
+        <result property="nurseNames"    column="nurse_names"    />
+        <result property="companionType"    column="companion_type"    />
+        <result property="companionName"    column="companion_name"    />
+        <result property="companionPhone"    column="companion_phone"    />
+        <result property="leaveStartTime"    column="leave_start_time"    />
+        <result property="plannedReturnTime"    column="planned_return_time"    />
+        <result property="leaveDays"    column="leave_days"    />
+        <result property="leaveReason"    column="leave_reason"    />
+        <result property="processInstanceId"    column="process_instance_id"    />
+        <result property="currentTaskKey"    column="current_task_key"    />
+        <result property="currentTaskName"    column="current_task_name"    />
+        <result property="status"    column="status"    />
+        <result property="actualReturnTime"    column="actual_return_time"    />
+        <result property="actualLeaveDays"    column="actual_leave_days"    />
+        <result property="isReturned"    column="is_returned"    />
+        <result property="applyUserId"    column="apply_user_id"    />
+        <result property="applyUserName"    column="apply_user_name"    />
+        <result property="applyTime"    column="apply_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectLcElderLeaveVo">
+        select id, order_no, elder_id, elder_name, elder_id_card, phone, nursing_level, bed_no, nurse_names, companion_type, companion_name, companion_phone, leave_start_time, planned_return_time, leave_days, leave_reason, process_instance_id, current_task_key, current_task_name, status, actual_return_time, actual_leave_days, is_returned, apply_user_id, apply_user_name, apply_time, remark, del_flag, create_by, create_time, update_by, update_time from lc_elder_leave
+    </sql>
+
+    <select id="selectLcElderLeaveList" parameterType="LcElderLeave" resultMap="LcElderLeaveResult">
+        <include refid="selectLcElderLeaveVo"/>
+        <where>
+            <if test="orderNo != null  and orderNo != ''"> and order_no = #{orderNo}</if>
+            <if test="elderId != null "> and elder_id = #{elderId}</if>
+            <if test="elderName != null  and elderName != ''"> and elder_name like concat('%', #{elderName}, '%')</if>
+            <if test="elderIdCard != null  and elderIdCard != ''"> and elder_id_card = #{elderIdCard}</if>
+            <if test="phone != null  and phone != ''"> and phone = #{phone}</if>
+            <if test="nursingLevel != null  and nursingLevel != ''"> and nursing_level = #{nursingLevel}</if>
+            <if test="bedNo != null  and bedNo != ''"> and bed_no = #{bedNo}</if>
+            <if test="nurseNames != null  and nurseNames != ''"> and nurse_names = #{nurseNames}</if>
+            <if test="companionType != null  and companionType != ''"> and companion_type = #{companionType}</if>
+            <if test="companionName != null  and companionName != ''"> and companion_name like concat('%', #{companionName}, '%')</if>
+            <if test="companionPhone != null  and companionPhone != ''"> and companion_phone = #{companionPhone}</if>
+            <if test="leaveStartTime != null "> and leave_start_time = #{leaveStartTime}</if>
+            <if test="plannedReturnTime != null "> and planned_return_time = #{plannedReturnTime}</if>
+            <if test="leaveDays != null "> and leave_days = #{leaveDays}</if>
+            <if test="leaveReason != null  and leaveReason != ''"> and leave_reason = #{leaveReason}</if>
+            <if test="processInstanceId != null  and processInstanceId != ''"> and process_instance_id = #{processInstanceId}</if>
+            <if test="currentTaskKey != null  and currentTaskKey != ''"> and current_task_key = #{currentTaskKey}</if>
+            <if test="currentTaskName != null  and currentTaskName != ''"> and current_task_name like concat('%', #{currentTaskName}, '%')</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+            <if test="actualReturnTime != null "> and actual_return_time = #{actualReturnTime}</if>
+            <if test="actualLeaveDays != null "> and actual_leave_days = #{actualLeaveDays}</if>
+            <if test="isReturned != null "> and is_returned = #{isReturned}</if>
+            <if test="applyUserId != null "> and apply_user_id = #{applyUserId}</if>
+            <if test="applyUserName != null  and applyUserName != ''"> and apply_user_name like concat('%', #{applyUserName}, '%')</if>
+            <if test="applyTime != null "> and apply_time = #{applyTime}</if>
+        </where>
+    </select>
+
+    <select id="selectLcElderLeaveById" parameterType="Long" resultMap="LcElderLeaveResult">
+        <include refid="selectLcElderLeaveVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertLcElderLeave" parameterType="LcElderLeave" useGeneratedKeys="true" keyProperty="id">
+        insert into lc_elder_leave
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orderNo != null and orderNo != ''">order_no,</if>
+            <if test="elderId != null">elder_id,</if>
+            <if test="elderName != null and elderName != ''">elder_name,</if>
+            <if test="elderIdCard != null">elder_id_card,</if>
+            <if test="phone != null">phone,</if>
+            <if test="nursingLevel != null">nursing_level,</if>
+            <if test="bedNo != null">bed_no,</if>
+            <if test="nurseNames != null">nurse_names,</if>
+            <if test="companionType != null and companionType != ''">companion_type,</if>
+            <if test="companionName != null">companion_name,</if>
+            <if test="companionPhone != null">companion_phone,</if>
+            <if test="leaveStartTime != null">leave_start_time,</if>
+            <if test="plannedReturnTime != null">planned_return_time,</if>
+            <if test="leaveDays != null">leave_days,</if>
+            <if test="leaveReason != null and leaveReason != ''">leave_reason,</if>
+            <if test="processInstanceId != null">process_instance_id,</if>
+            <if test="currentTaskKey != null">current_task_key,</if>
+            <if test="currentTaskName != null">current_task_name,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="actualReturnTime != null">actual_return_time,</if>
+            <if test="actualLeaveDays != null">actual_leave_days,</if>
+            <if test="isReturned != null">is_returned,</if>
+            <if test="applyUserId != null">apply_user_id,</if>
+            <if test="applyUserName != null">apply_user_name,</if>
+            <if test="applyTime != null">apply_time,</if>
+            <if test="remark != null">remark,</if>
+            <if test="delFlag != null and delFlag != ''">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="orderNo != null and orderNo != ''">#{orderNo},</if>
+            <if test="elderId != null">#{elderId},</if>
+            <if test="elderName != null and elderName != ''">#{elderName},</if>
+            <if test="elderIdCard != null">#{elderIdCard},</if>
+            <if test="phone != null">#{phone},</if>
+            <if test="nursingLevel != null">#{nursingLevel},</if>
+            <if test="bedNo != null">#{bedNo},</if>
+            <if test="nurseNames != null">#{nurseNames},</if>
+            <if test="companionType != null and companionType != ''">#{companionType},</if>
+            <if test="companionName != null">#{companionName},</if>
+            <if test="companionPhone != null">#{companionPhone},</if>
+            <if test="leaveStartTime != null">#{leaveStartTime},</if>
+            <if test="plannedReturnTime != null">#{plannedReturnTime},</if>
+            <if test="leaveDays != null">#{leaveDays},</if>
+            <if test="leaveReason != null and leaveReason != ''">#{leaveReason},</if>
+            <if test="processInstanceId != null">#{processInstanceId},</if>
+            <if test="currentTaskKey != null">#{currentTaskKey},</if>
+            <if test="currentTaskName != null">#{currentTaskName},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="actualReturnTime != null">#{actualReturnTime},</if>
+            <if test="actualLeaveDays != null">#{actualLeaveDays},</if>
+            <if test="isReturned != null">#{isReturned},</if>
+            <if test="applyUserId != null">#{applyUserId},</if>
+            <if test="applyUserName != null">#{applyUserName},</if>
+            <if test="applyTime != null">#{applyTime},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="delFlag != null and delFlag != ''">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateLcElderLeave" parameterType="LcElderLeave">
+        update lc_elder_leave
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="orderNo != null and orderNo != ''">order_no = #{orderNo},</if>
+            <if test="elderId != null">elder_id = #{elderId},</if>
+            <if test="elderName != null and elderName != ''">elder_name = #{elderName},</if>
+            <if test="elderIdCard != null">elder_id_card = #{elderIdCard},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="nursingLevel != null">nursing_level = #{nursingLevel},</if>
+            <if test="bedNo != null">bed_no = #{bedNo},</if>
+            <if test="nurseNames != null">nurse_names = #{nurseNames},</if>
+            <if test="companionType != null and companionType != ''">companion_type = #{companionType},</if>
+            <if test="companionName != null">companion_name = #{companionName},</if>
+            <if test="companionPhone != null">companion_phone = #{companionPhone},</if>
+            <if test="leaveStartTime != null">leave_start_time = #{leaveStartTime},</if>
+            <if test="plannedReturnTime != null">planned_return_time = #{plannedReturnTime},</if>
+            <if test="leaveDays != null">leave_days = #{leaveDays},</if>
+            <if test="leaveReason != null and leaveReason != ''">leave_reason = #{leaveReason},</if>
+            <if test="processInstanceId != null">process_instance_id = #{processInstanceId},</if>
+            <if test="currentTaskKey != null">current_task_key = #{currentTaskKey},</if>
+            <if test="currentTaskName != null">current_task_name = #{currentTaskName},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="actualReturnTime != null">actual_return_time = #{actualReturnTime},</if>
+            <if test="actualLeaveDays != null">actual_leave_days = #{actualLeaveDays},</if>
+            <if test="isReturned != null">is_returned = #{isReturned},</if>
+            <if test="applyUserId != null">apply_user_id = #{applyUserId},</if>
+            <if test="applyUserName != null">apply_user_name = #{applyUserName},</if>
+            <if test="applyTime != null">apply_time = #{applyTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="delFlag != null and delFlag != ''">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteLcElderLeaveById" parameterType="Long">
+        delete from lc_elder_leave where id = #{id}
+    </delete>
+
+    <delete id="deleteLcElderLeaveByIds" parameterType="String">
+        delete from lc_elder_leave where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

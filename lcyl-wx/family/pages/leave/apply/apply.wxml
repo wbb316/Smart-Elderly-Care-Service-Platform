@@ -1,0 +1,67 @@
+<view class="apply-page">
+  <view class="form-card">
+    <!-- 选择老人 -->
+    <view class="form-item">
+      <view class="label">选择老人<text class="required">*</text></view>
+      <picker mode="selector" range="{{elderList}}" range-key="name" bindchange="onElderChange">
+        <view class="picker-val">{{selectedElder ? selectedElder.name : '请选择老人'}}</view>
+      </picker>
+    </view>
+
+    <!-- 老人信息预览 -->
+    <view wx:if="{{elderInfo}}" class="elder-info-card">
+      <view class="info-row"><text>护理等级：</text>{{elderInfo.nursingLevel || '无'}}</view>
+      <view class="info-row"><text>床位：</text>{{elderInfo.bedNo || '无'}}</view>
+      <view class="info-row"><text>身份证号：</text>{{elderInfo.idCardNo || '无'}}</view>
+    </view>
+
+    <!-- 陪同人类型 -->
+    <view class="form-item">
+      <view class="label">陪同人类型<text class="required">*</text></view>
+      <picker mode="selector" range="{{companionTypeOptions}}" bindchange="onCompanionTypeChange">
+        <view class="picker-val">{{companionType || '请选择'}}</view>
+      </picker>
+    </view>
+
+    <!-- 陪同人姓名 -->
+    <view class="form-item" wx:if="{{companionType && companionType !== '无'}}">
+      <view class="label">陪同人姓名</view>
+      <input class="input" placeholder="请输入陪同人姓名" value="{{companionName}}" data-field="companionName" bindinput="onInputChange" />
+    </view>
+
+    <!-- 陪同人电话 -->
+    <view class="form-item" wx:if="{{companionType && companionType !== '无'}}">
+      <view class="label">陪同人电话</view>
+      <input class="input" type="number" placeholder="请输入陪同人电话" value="{{companionPhone}}" data-field="companionPhone" bindinput="onInputChange" />
+    </view>
+
+    <!-- 请假时间 -->
+    <view class="form-item">
+      <view class="label">开始时间<text class="required">*</text></view>
+      <picker mode="date" bindchange="onStartTimeChange">
+        <view class="picker-val">{{leaveStartTime || '请选择'}}</view>
+      </picker>
+    </view>
+    <view class="form-item">
+      <view class="label">预计返回<text class="required">*</text></view>
+      <picker mode="date" bindchange="onEndTimeChange">
+        <view class="picker-val">{{plannedReturnTime || '请选择'}}</view>
+      </picker>
+    </view>
+    <view class="form-item" wx:if="{{leaveDays > 0}}">
+      <view class="label">请假天数</view>
+      <view class="picker-val">{{leaveDays}} 天</view>
+    </view>
+
+    <!-- 请假原因 -->
+    <view class="form-item">
+      <view class="label">请假原因<text class="required">*</text></view>
+      <textarea class="textarea" placeholder="请输入请假原因" value="{{leaveReason}}" data-field="leaveReason" bindinput="onInputChange" maxlength="200" />
+    </view>
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="submit-btn" bindtap="submitLeave">
+    {{submitting ? '提交中...' : '提交申请'}}
+  </view>
+</view>
