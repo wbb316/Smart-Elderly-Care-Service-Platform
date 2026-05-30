@@ -4,7 +4,8 @@ Page({
     tabs: [
       { name: '全部', tradeStatus: null },
       { name: '待支付', tradeStatus: 0 },
-      { name: '已支付', tradeStatus: 1 }
+      { name: '已支付', tradeStatus: 1 },
+      { name: '已退款', tradeStatus: 3 }
     ],
     currentTab: 0,
     elderId: "",

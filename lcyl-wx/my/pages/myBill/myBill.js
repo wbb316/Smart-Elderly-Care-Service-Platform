@@ -1,11 +1,12 @@
-const app = getApp();
+const { request } = require("../../../utils/request");
 
 Page({
   data: {
     statusTabs: [
       { key: "all", label: "全部" },
       { key: "pending", label: "待支付" },
-      { key: "paid", label: "已支付" }
+      { key: "paid", label: "已支付" },
+      { key: "refunded", label: "已退款" }
     ],
     elderTabs: [{ key: "all", label: "全部" }],
     activeStatus: "all",
@@ -21,14 +22,11 @@ Page({
   },
 
   loadElderTabs() {
-    wx.request({
+    request({
       url: "http://localhost:8080/wxLogin/getElderBedList",
-      method: "POST",
-      header: {
-        "content-type": "application/json",
-        Authorization: app.globalData.token || ""
-      },
-      success: (res) => {
+      method: "POST"
+    })
+      .then((res) => {
         const elderList =
           (res.data && Array.isArray(res.data.rows) && res.data.rows) ||
           (res.data && Array.isArray(res.data.data) && res.data.data) ||
@@ -46,25 +44,21 @@ Page({
         this.setData({ elderTabs }, () => {
           this.filterBills();
         });
-      },
-      fail: () => {
+      })
+      .catch(() => {
         this.setData({
           elderTabs: [{ key: "all", label: "全部" }]
         });
-      }
-    });
+      });
   },
 
   getMyBills() {
     this.setData({ loading: true });
-    wx.request({
+    request({
       url: "http://localhost:8080/wxLogin/myBills",
-      method: "GET",
-      header: {
-        "content-type": "application/json",
-        Authorization: app.globalData.token || ""
-      },
-      success: (res) => {
+      method: "GET"
+    })
+      .then((res) => {
         if (res.data && res.data.code === 200 && Array.isArray(res.data.data)) {
           const billList = res.data.data.map((item) => this.mapBillItem(item));
           this.setData({ billList }, () => {
@@ -73,14 +67,13 @@ Page({
           return;
         }
         wx.showToast({ title: "获取账单失败", icon: "none" });
-      },
-      fail: () => {
+      })
+      .catch(() => {
         wx.showToast({ title: "网络异常，请稍后重试", icon: "none" });
-      },
-      complete: () => {
+      })
+      .finally(() => {
         this.setData({ loading: false });
-      }
-    });
+      });
   },
 
   mapBillItem(item) {
@@ -93,6 +86,9 @@ Page({
     } else if (tradeStatus === "1") {
       status = "paid";
       statusText = "已支付";
+    } else if (tradeStatus === "3") {
+      status = "refunded";
+      statusText = "已退款";
     }
 
     return {

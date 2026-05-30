@@ -96,7 +96,7 @@ Page({
       },
       data: {
         id: leave.id,
-        actualReturnTime: actualReturnTime + ':00',
+        actualReturnTime: actualReturnTime + ' 00:00:00',
         isReturned: 1
       },
       success: (res) => {

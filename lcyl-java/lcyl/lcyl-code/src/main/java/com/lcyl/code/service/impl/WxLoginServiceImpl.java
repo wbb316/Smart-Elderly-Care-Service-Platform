@@ -318,6 +318,57 @@ public class WxLoginServiceImpl implements WxLoginService
         {
             nursingTaskMapper.insertTaskExecutionInit(order.getId(), String.valueOf(UserThreadLocal.getUserId()), DateUtils.getNowDate());
         }
+
+        // 支付成功后自动生成费用账单，确保"我的账单"中能看到
+        if (billMapper.checkExpenseBillExists(order.getOrderNo()) <= 0)
+        {
+            Date now = DateUtils.getNowDate();
+            Date serviceDate = order.getExpectedServiceTime() != null ? order.getExpectedServiceTime() : now;
+
+            Bill bill = new Bill();
+            bill.setBillNo("FY" + DateUtils.dateTimeNow("yyyyMMddHHmmss") + ThreadLocalRandom.current().nextInt(100, 1000));
+            bill.setBillType("2");
+            bill.setBillMonth(formatBillMonth(serviceDate));
+            bill.setElderId(order.getElderId());
+            bill.setElderName(order.getElderName());
+
+            Elder elder = order.getElderId() == null ? null : elderService.selectElderById(order.getElderId());
+            bill.setElderIdCard(elder == null ? null : elder.getIdCardNo());
+
+            bill.setBedId(order.getBedId());
+            bill.setBedNo(order.getBedNo());
+            bill.setBillAmount(order.getOrderAmount());
+            bill.setPayableAmount(order.getOrderAmount());
+            bill.setTradeStatus("1");
+            bill.setPayDeadline(order.getPayTime() != null ? order.getPayTime() : now);
+            bill.setStartDate(serviceDate);
+            bill.setEndDate(serviceDate);
+            bill.setDaysCount(1L);
+            bill.setCreatorId(UserThreadLocal.getUserId());
+            bill.setCreatorName(null);
+            bill.setDelFlag("0");
+            bill.setCreateBy(String.valueOf(UserThreadLocal.getUserId()));
+            bill.setCreateTime(now);
+            bill.setUpdateBy(String.valueOf(UserThreadLocal.getUserId()));
+            bill.setUpdateTime(now);
+            bill.setRemark("来源服务订单：" + order.getOrderNo());
+
+            int billRows = billMapper.insertBill(bill);
+            if (billRows > 0 && bill.getId() != null)
+            {
+                BillItem item = new BillItem();
+                item.setBillId(bill.getId());
+                item.setBillNo(bill.getBillNo());
+                item.setItemType("1");
+                item.setFeeName(order.getProjectName() == null || "".equals(order.getProjectName().trim()) ? "服务费用" : order.getProjectName());
+                item.setServiceContent(order.getProjectName());
+                item.setAmount(order.getOrderAmount());
+                item.setSort(1);
+                item.setRemark("服务订单支付自动生成");
+                billItemMapper.insertBillItem(item);
+            }
+        }
+
         return rows;
     }
 
@@ -419,9 +470,9 @@ public class WxLoginServiceImpl implements WxLoginService
         }
 
         ServiceOrderRefund latestRefund = serviceOrderRefundMapper.selectLatestRefundByOrderId(order.getId());
-        if (latestRefund != null && "0".equals(latestRefund.getRefundStatus()))
+        if (latestRefund != null && "1".equals(latestRefund.getRefundStatus()))
         {
-            throw new ServiceException("当前订单已有退款申请在处理中");
+            throw new ServiceException("当前订单已退款，请勿重复申请");
         }
 
         Member member = memberMapper.selectById(memberId);
@@ -430,22 +481,25 @@ public class WxLoginServiceImpl implements WxLoginService
             throw new ServiceException("当前用户不存在");
         }
 
+        Date now = DateUtils.getNowDate();
+
         ServiceOrderRefund refund = new ServiceOrderRefund();
         refund.setRefundNo(generateRefundNo());
         refund.setOrderId(order.getId());
         refund.setOrderNo(order.getOrderNo());
         refund.setRefundAmount(order.getOrderAmount());
-        refund.setRefundStatus("0");
+        refund.setRefundStatus("1");
+        refund.setRefundTime(now);
         refund.setApplicantId(memberId);
         refund.setApplicantName(member.getName());
         refund.setApplicantType("1");
-        refund.setApplyTime(DateUtils.getNowDate());
+        refund.setApplyTime(now);
         refund.setRefundReason(dto.getRefundReason().trim());
         refund.setRefundChannel("1");
         refund.setRefundMethod("微信");
         refund.setDelFlag("0");
         refund.setCreateBy(String.valueOf(memberId));
-        refund.setCreateTime(DateUtils.getNowDate());
+        refund.setCreateTime(now);
 
         int rows = serviceOrderRefundMapper.insertServiceOrderRefund(refund);
         if (rows <= 0)
@@ -453,8 +507,20 @@ public class WxLoginServiceImpl implements WxLoginService
             throw new ServiceException("退款申请失败，请稍后重试");
         }
 
-        order.setTradeStatus("2");
+        order.setOrderStatus("5");
+        order.setTradeStatus("3");
+        order.setUpdateTime(now);
         serviceOrderService.updateServiceOrder(order);
+
+        // 同步更新关联账单状态为已退款
+        Bill bill = billMapper.selectBillByOrderNo(order.getOrderNo());
+        if (bill != null)
+        {
+            bill.setTradeStatus("3");
+            bill.setUpdateTime(now);
+            billMapper.updateBill(bill);
+        }
+
         return rows;
     }
 
@@ -510,6 +576,11 @@ public class WxLoginServiceImpl implements WxLoginService
     private String generateBillPaymentNo()
     {
         return "FK" + DateUtils.dateTimeNow("yyyyMMddHHmmss") + ThreadLocalRandom.current().nextInt(100, 1000);
+    }
+
+    private String formatBillMonth(Date date)
+    {
+        return new SimpleDateFormat("yyyy-MM").format(date);
     }
 
     @Override

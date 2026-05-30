@@ -17,8 +17,8 @@
   <view wx:for="{{billList}}" wx:key="id" class="bill-card">
     <view class="card-header">
       <text class="bill-no">{{item.billNo}}</text>
-      <text class="status-tag {{item.tradeStatus == 0 ? 'pending' : 'paid'}}">
-        {{item.tradeStatus == 0 ? '待支付' : '已支付'}}
+      <text class="status-tag {{item.tradeStatus == 0 ? 'pending' : item.tradeStatus == 3 ? 'refunded' : 'paid'}}">
+        {{item.tradeStatus == 0 ? '待支付' : item.tradeStatus == 3 ? '已退款' : '已支付'}}
       </text>
     </view>
 

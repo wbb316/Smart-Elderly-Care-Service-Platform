@@ -45,8 +45,8 @@ Page({
             ...item,
             startTime: this.formatTime(item.leaveStartTime),
             endTime: this.formatTime(item.plannedReturnTime),
-            statusLabel: this.getStatusLabel(item.status),
-            statusClass: this.getStatusClass(item.status)
+            statusLabel: this.getStatusLabel(item.realStatus || item.status),
+            statusClass: this.getStatusClass(item.realStatus || item.status)
           }))
           this.setData({ leaveList: rows })
         }

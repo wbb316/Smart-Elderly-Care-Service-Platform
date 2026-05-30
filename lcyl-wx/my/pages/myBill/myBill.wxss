@@ -163,6 +163,10 @@ page {
   color: #999999;
 }
 
+.status-text.refunded {
+  color: #909399;
+}
+
 .bill-main {
   display: flex;
   justify-content: space-between;

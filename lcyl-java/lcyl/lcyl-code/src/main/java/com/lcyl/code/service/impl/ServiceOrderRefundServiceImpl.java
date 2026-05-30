@@ -3,9 +3,11 @@ package com.lcyl.code.service.impl;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.lcyl.code.domain.Bill;
 import com.lcyl.code.domain.ServiceOrder;
 import com.lcyl.code.domain.ServiceOrderRefund;
 import com.lcyl.code.domain.dto.ServiceOrderRefundFailDTO;
+import com.lcyl.code.mapper.BillMapper;
 import com.lcyl.code.mapper.ServiceOrderMapper;
 import com.lcyl.code.mapper.ServiceOrderRefundMapper;
 import com.lcyl.code.service.IServiceOrderRefundService;
@@ -26,6 +28,9 @@ public class ServiceOrderRefundServiceImpl implements IServiceOrderRefundService
 
     @Autowired
     private ServiceOrderMapper serviceOrderMapper;
+
+    @Autowired
+    private BillMapper billMapper;
 
     /**
      * 查询退款管理
@@ -136,7 +141,18 @@ public class ServiceOrderRefundServiceImpl implements IServiceOrderRefundService
         order.setOrderStatus("5");
         order.setTradeStatus("3");
         order.setUpdateTime(DateUtils.getNowDate());
-        return serviceOrderMapper.updateServiceOrder(order);
+        int rows = serviceOrderMapper.updateServiceOrder(order);
+
+        // 同步更新关联账单状态为已退款
+        Bill bill = billMapper.selectBillByOrderNo(order.getOrderNo());
+        if (bill != null)
+        {
+            bill.setTradeStatus("3");
+            bill.setUpdateTime(DateUtils.getNowDate());
+            billMapper.updateBill(bill);
+        }
+
+        return rows;
     }
 
     /**
@@ -181,6 +197,17 @@ public class ServiceOrderRefundServiceImpl implements IServiceOrderRefundService
 
         order.setTradeStatus("4");
         order.setUpdateTime(DateUtils.getNowDate());
-        return serviceOrderMapper.updateServiceOrder(order);
+        int rows = serviceOrderMapper.updateServiceOrder(order);
+
+        // 退款失败，恢复关联账单状态为已支付
+        Bill bill = billMapper.selectBillByOrderNo(order.getOrderNo());
+        if (bill != null)
+        {
+            bill.setTradeStatus("1");
+            bill.setUpdateTime(DateUtils.getNowDate());
+            billMapper.updateBill(bill);
+        }
+
+        return rows;
     }
 }

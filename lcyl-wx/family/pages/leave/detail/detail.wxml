@@ -33,7 +33,7 @@
   </view>
 
   <!-- 销假按钮（请假中/超时未归状态显示） -->
-  <view wx:if="{{leave.status === 'leaving' || leave.status === 'timeout'}}" class="back-btn" bindtap="showBack">销假登记</view>
+  <view wx:if="{{leave.status === 'approved' || leave.status === 'timeout'}}" class="back-btn" bindtap="showBack">销假登记</view>
 </view>
 
 <!-- 销假弹窗 -->

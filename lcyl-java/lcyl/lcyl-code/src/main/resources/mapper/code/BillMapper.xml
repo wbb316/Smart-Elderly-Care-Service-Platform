@@ -238,6 +238,22 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
           and remark like concat('%', #{orderNo}, '%')
     </select>
 
+    <select id="selectBillByOrderNo" resultMap="BillResult">
+        select
+            b.id, b.bill_no, b.bill_type, b.bill_month,
+            b.elder_id, b.elder_name, b.elder_id_card,
+            b.bed_id, b.bed_no, b.bill_amount, b.payable_amount,
+            b.trade_status, b.pay_deadline, b.start_date, b.end_date,
+            b.days_count, b.creator_id, b.creator_name,
+            b.cancel_reason, b.cancel_time, b.remark, b.del_flag,
+            b.create_by, b.create_time, b.update_by, b.update_time
+        from lc_bill b
+        where b.del_flag = '0'
+          and b.bill_type = '2'
+          and b.remark like concat('%', #{orderNo}, '%')
+        limit 1
+    </select>
+
     <select id="selectGenerateElderInfo" parameterType="Long" resultType="com.lcyl.code.domain.vo.BillGenerateElderVO">
         select
             e.id as elderId,

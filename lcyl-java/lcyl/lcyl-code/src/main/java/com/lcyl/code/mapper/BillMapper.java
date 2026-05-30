@@ -42,4 +42,6 @@ public interface BillMapper
     public Bill selectWxMyBillDetail(@Param("memberId") Long memberId, @Param("id") Long id);
 
     List<Bill> selectPendingBillsByElderId(Long elderId);
+
+    Bill selectBillByOrderNo(@Param("orderNo") String orderNo);
 }

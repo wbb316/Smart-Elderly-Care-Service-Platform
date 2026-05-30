@@ -70,6 +70,9 @@ page {
 .status-tag.paid {
   color: #52c41a;
 }
+.status-tag.refunded {
+  color: #909399;
+}
 
 /* 卡片标题 */
 .card-title {
