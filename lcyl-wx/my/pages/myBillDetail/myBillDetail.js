@@ -1,4 +1,5 @@
 const app = getApp();
+const { request } = require('../../../utils/request');
 
 Page({
   data: {
@@ -26,33 +27,26 @@ Page({
   getBillDetail() {
     if (!this.data.id) return;
     this.setData({ loading: true });
-    wx.request({
-      url: `http://localhost:8080/wxLogin/myBillDetail/${this.data.id}`,
-      method: "GET",
-      header: {
-        "content-type": "application/json",
-        Authorization: app.globalData.token || ""
-      },
-      success: (res) => {
-        if (res.data && res.data.code === 200 && res.data.data) {
-          const detail = res.data.data;
-          const billInfo = detail.billInfo || {};
-          this.setData({
-            billInfo,
-            billItemList: detail.billItemList || [],
-            paymentRecord: detail.paymentRecord || null,
-            billView: this.buildBillView(billInfo)
-          });
-          return;
-        }
-        wx.showToast({ title: "获取账单详情失败", icon: "none" });
-      },
-      fail: () => {
-        wx.showToast({ title: "网络异常，请稍后重试", icon: "none" });
-      },
-      complete: () => {
-        this.setData({ loading: false });
+    request({
+      url: `/wxLogin/myBillDetail/${this.data.id}`,
+      method: "GET"
+    }).then((res) => {
+      if (res.data && res.data.code === 200 && res.data.data) {
+        const detail = res.data.data;
+        const billInfo = detail.billInfo || {};
+        this.setData({
+          billInfo,
+          billItemList: detail.billItemList || [],
+          paymentRecord: detail.paymentRecord || null,
+          billView: this.buildBillView(billInfo)
+        });
+        return;
       }
+      wx.showToast({ title: "获取账单详情失败", icon: "none" });
+    }).catch(() => {
+      wx.showToast({ title: "网络异常，请稍后重试", icon: "none" });
+    }).finally(() => {
+      this.setData({ loading: false });
     });
   },
 

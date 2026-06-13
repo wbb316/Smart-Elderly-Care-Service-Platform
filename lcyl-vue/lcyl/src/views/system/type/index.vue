@@ -91,7 +91,7 @@
         <el-form-item label="房型照片">
           <el-upload
               class="avatar-uploader"
-              action="http://localhost:8080/upload"
+              :action="uploadUrl"
               :show-file-list="false"
               :on-success="handleAvatarSuccess"
               :before-upload="beforeAvatarUpload"
@@ -139,6 +139,7 @@
 </template>
 
 <script setup lang="ts" name="RoomType">
+const uploadUrl = import.meta.env.VITE_APP_BASE_API + '/upload'
 import { Plus } from "@element-plus/icons-vue";
 import {ElMessage, UploadFile} from 'element-plus'
 import type { LcRoomType, TypeQueryParams } from "@/types/api/system/type";

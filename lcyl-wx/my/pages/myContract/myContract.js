@@ -1,4 +1,5 @@
 const app = getApp()
+const { request } = require('../../../utils/request');
 
 Page({
   data: {
@@ -33,23 +34,17 @@ Page({
 
   getMyElderList() {
     this.setData({ loading: true })
-    wx.request({
-      url: 'http://localhost:8080/wxLogin/getElderBedList',
-      method: "POST",
-      header: {
-        'content-type': 'application/json',
-        'authorization': app.globalData.token || ''
-      },
-      success: (resp) => {
-        if (resp.data.code == 200) {
-          let elderList = resp.data.data || []
-          this.setData({ elderList })
-          this.getAllContractForAllElders(elderList)
-        }
-      },
-      fail: () => {
-        this.setData({ loading: false })
+    request({
+      url: '/wxLogin/getElderBedList',
+      method: "POST"
+    }).then((resp) => {
+      if (resp.data.code == 200) {
+        let elderList = resp.data.data || []
+        this.setData({ elderList })
+        this.getAllContractForAllElders(elderList)
       }
+    }).catch(() => {
+      this.setData({ loading: false })
     })
   },
 
@@ -57,110 +52,100 @@ Page({
   getElderPhoto(elderId, index) {
     if (!elderId) return
 
-    wx.request({
-      url: `http://localhost:8080/wxLogin/bed/${elderId}`,
-      method: 'GET',
-      header: {
-        'authorization': app.globalData.token || ''
-      },
-      success: (res) => {
-        console.log(res.data.data);
-        let photo = res.data.data.photo || ""
-        let roomCode = res.data.data.roomCode || ""
-        let roomTypeName = res.data.data.roomTypeName || ""
-        this.setData({
-          [`contractList[${index}].photo`]: photo,
-          [`contractList[${index}].roomCode`]: roomCode,
-          [`contractList[${index}].roomTypeName`]: roomTypeName
-        })
-        
-      }
+    request({
+      url: `/wxLogin/bed/${elderId}`,
+      method: 'GET'
+    }).then((res) => {
+      let photo = res.data.data.photo || ""
+      let roomCode = res.data.data.roomCode || ""
+      let roomTypeName = res.data.data.roomTypeName || ""
+      this.setData({
+        [`contractList[${index}].photo`]: photo,
+        [`contractList[${index}].roomCode`]: roomCode,
+        [`contractList[${index}].roomTypeName`]: roomTypeName
+      })
+
     })
   },
 
   getAllContractForAllElders(elderList) {
-    wx.request({
-      url: 'http://localhost:8080/wxLogin/contract/list?pageSize=1000',
-      method: 'GET',
-      header: {
-        Authorization: app.globalData.token || ''
-      },
-      success: (res) => {
-        if (res.data.code !== 200) return
-  
-        const allContracts = res.data.rows || []
-        const myAllContracts = allContracts.filter(item => {
-          for (let i = 0; i < elderList.length; i++) {
-            if (item.elderId == elderList[i].id) return true
-          }
-          return false
-        })
+    request({
+      url: '/wxLogin/contract/list?pageSize=1000',
+      method: 'GET'
+    }).then((res) => {
+      if (res.data.code !== 200) return
 
-        // 🔥 前端根据 当前时间 自动判断状态
-        const now = new Date()
+      const allContracts = res.data.rows || []
+      const myAllContracts = allContracts.filter(item => {
+        for (let i = 0; i < elderList.length; i++) {
+          if (item.elderId == elderList[i].id) return true
+        }
+        return false
+      })
 
-        const list = myAllContracts.map(item => {
-          const startTime = item.startTime ? new Date(item.startTime) : null
-          const endTime = item.endTime ? new Date(item.endTime) : null
+      // 前端根据 当前时间 自动判断状态
+      const now = new Date()
 
-          let statusText = ""
-          let statusClass = ""
+      const list = myAllContracts.map(item => {
+        const startTime = item.startTime ? new Date(item.startTime) : null
+        const endTime = item.endTime ? new Date(item.endTime) : null
 
-          if (!startTime || !endTime) {
-            statusText = "暂无期限"
-            statusClass = "status-pending"
-          } else if (now < startTime) {
-            statusText = "未生效"
-            statusClass = "status-pending"
-          } else if (now > endTime) {
-            statusText = "已过期"
-            statusClass = "status-expired"
-          } else {
-            statusText = "已生效"
-            statusClass = "status-active"
-          }
+        let statusText = ""
+        let statusClass = ""
 
-          return {
-            id: item.id,
-            elderId: item.elderId,
-            contractNo: item.contractNo,
-            statusText: statusText,
-            statusClass: statusClass,
-            contractName: item.name,
-            roomTypeName: item.roomTypeName,
-            roomCode: item.roomCode,
-            familyName: item.elderName,
-            signDate: item.signDate ? item.signDate.split(' ')[0] : '',
-            startTime: item.startTime ? item.startTime.split(' ')[0] : '',
-            endTime: item.endTime ? item.endTime.split(' ')[0] : '',
-            validPeriod: (item.startTime && item.endTime) 
-              ? `${item.startTime.split(' ')[0]}~${item.endTime.split(' ')[0]}` 
-              : '暂无',
-            fileUrl: item.pdfUrl,
-            cancelTime: item.cancelTime ? item.cancelTime.split(' ')[0] : ''
-          }
-        })
-  
-        this.setData({ contractList: list })
+        if (!startTime || !endTime) {
+          statusText = "暂无期限"
+          statusClass = "status-pending"
+        } else if (now < startTime) {
+          statusText = "未生效"
+          statusClass = "status-pending"
+        } else if (now > endTime) {
+          statusText = "已过期"
+          statusClass = "status-expired"
+        } else {
+          statusText = "已生效"
+          statusClass = "status-active"
+        }
 
-        list.forEach((item, index) => {
-          if (item.elderId) {
-            this.getElderPhoto(item.elderId, index)
-          }
-        })
-      },
-      complete: () => {
-        this.setData({ loading: false })
-      }
+        return {
+          id: item.id,
+          elderId: item.elderId,
+          contractNo: item.contractNo,
+          statusText: statusText,
+          statusClass: statusClass,
+          contractName: item.name,
+          roomTypeName: item.roomTypeName,
+          roomCode: item.roomCode,
+          familyName: item.elderName,
+          signDate: item.signDate ? item.signDate.split(' ')[0] : '',
+          startTime: item.startTime ? item.startTime.split(' ')[0] : '',
+          endTime: item.endTime ? item.endTime.split(' ')[0] : '',
+          validPeriod: (item.startTime && item.endTime)
+            ? `${item.startTime.split(' ')[0]}~${item.endTime.split(' ')[0]}`
+            : '暂无',
+          fileUrl: item.pdfUrl,
+          cancelTime: item.cancelTime ? item.cancelTime.split(' ')[0] : ''
+        }
+      })
+
+      this.setData({ contractList: list })
+
+      list.forEach((item, index) => {
+        if (item.elderId) {
+          this.getElderPhoto(item.elderId, index)
+        }
+      })
+    }).finally(() => {
+      this.setData({ loading: false })
     })
   },
 
   handleView(e) {
     const item = e.currentTarget.dataset.item
-  
+
     const roomTypeName = item.roomTypeName
     const roomCode = item.roomCode
-    const contractName = item.contractName 
+    const contractName = item.contractName
     wx.navigateTo({
       url: `/my/pages/contractDetails/contractDetails?roomTypeName=${roomTypeName}&roomCode=${roomCode}&contractName=${contractName}`,
     })

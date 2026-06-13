@@ -1,4 +1,5 @@
 const app = getApp()
+const { request } = require('../../../utils/request');
 
 Page({
   data: {
@@ -40,45 +41,39 @@ Page({
   },
 
   getOrderDetail() {
-    wx.request({
-      url: `http://localhost:8080/wxLogin/myOrderDetail/${this.orderId}`,
-      method: 'GET',
-      header: {
-        'content-type': 'application/json',
-        authorization: app.globalData.token || ''
-      },
-      success: (res) => {
-        if (res.data.code === 200) {
-          const detail = res.data.data || {}
-          const orderInfo = detail.orderInfo || null
-          const executionInfo = detail.executionInfo || null
-          const refundInfo = detail.refundInfo || null
+    request({
+      url: `/wxLogin/myOrderDetail/${this.orderId}`,
+      method: 'GET'
+    }).then((res) => {
+      if (res.data.code === 200) {
+        const detail = res.data.data || {}
+        const orderInfo = detail.orderInfo || null
+        const executionInfo = detail.executionInfo || null
+        const refundInfo = detail.refundInfo || null
 
-          this.setData({
-            loading: false,
-            orderInfo,
-            orderView: this.buildOrderView(orderInfo, executionInfo, refundInfo),
-            executionInfo,
-            refundInfo,
-            projectImage: detail.projectImage || '/images/head.png',
-            uiState: this.buildUiState(orderInfo, executionInfo, refundInfo)
-          })
-          return
-        }
-
-        this.setData({ loading: false })
-        wx.showToast({
-          title: res.data.msg || '获取订单详情失败',
-          icon: 'none'
+        this.setData({
+          loading: false,
+          orderInfo,
+          orderView: this.buildOrderView(orderInfo, executionInfo, refundInfo),
+          executionInfo,
+          refundInfo,
+          projectImage: detail.projectImage || '/images/head.png',
+          uiState: this.buildUiState(orderInfo, executionInfo, refundInfo)
         })
-      },
-      fail: () => {
-        this.setData({ loading: false })
-        wx.showToast({
-          title: '获取订单详情失败',
-          icon: 'none'
-        })
+        return
       }
+
+      this.setData({ loading: false })
+      wx.showToast({
+        title: res.data.msg || '获取订单详情失败',
+        icon: 'none'
+      })
+    }).catch(() => {
+      this.setData({ loading: false })
+      wx.showToast({
+        title: '获取订单详情失败',
+        icon: 'none'
+      })
     })
   },
 
@@ -231,7 +226,7 @@ Page({
       return
     }
     wx.previewImage({
-      urls: [url], 
+      urls: [url],
       current: url
     })
   },
@@ -245,26 +240,20 @@ Page({
           return
         }
         wx.showLoading({ title: '处理中...' })
-        wx.request({
-          url: `http://localhost:8080/wxLogin/cancelOrder/${this.orderId}`,
-          method: 'POST',
-          header: {
-            'content-type': 'application/json',
-            authorization: app.globalData.token || ''
-          },
-          success: resp => {
-            wx.hideLoading()
-            if (resp.data.code !== 200) {
-              wx.showToast({ title: resp.data.msg || '取消失败', icon: 'none' })
-              return
-            }
-            wx.showToast({ title: '取消成功', icon: 'success' })
-            this.getOrderDetail()
-          },
-          fail: () => {
-            wx.hideLoading()
-            wx.showToast({ title: '取消失败，请稍后重试', icon: 'none' })
+        request({
+          url: `/wxLogin/cancelOrder/${this.orderId}`,
+          method: 'POST'
+        }).then(resp => {
+          wx.hideLoading()
+          if (resp.data.code !== 200) {
+            wx.showToast({ title: resp.data.msg || '取消失败', icon: 'none' })
+            return
           }
+          wx.showToast({ title: '取消成功', icon: 'success' })
+          this.getOrderDetail()
+        }).catch(() => {
+          wx.hideLoading()
+          wx.showToast({ title: '取消失败，请稍后重试', icon: 'none' })
         })
       }
     })
@@ -295,30 +284,24 @@ Page({
       success: res => {
         const refundReason = this.refundReasonOptions[res.tapIndex]
         wx.showLoading({ title: '提交中...' })
-        wx.request({
-          url: 'http://localhost:8080/wxLogin/applyRefund',
+        request({
+          url: '/wxLogin/applyRefund',
           method: 'POST',
-          header: {
-            'content-type': 'application/json',
-            authorization: app.globalData.token || ''
-          },
           data: {
             orderId: this.orderId,
             refundReason
-          },
-          success: resp => {
-            wx.hideLoading()
-            if (resp.data.code !== 200) {
-              wx.showToast({ title: resp.data.msg || '申请退款失败', icon: 'none' })
-              return
-            }
-            wx.showToast({ title: '退款申请已提交', icon: 'success' })
-            this.getOrderDetail()
-          },
-          fail: () => {
-            wx.hideLoading()
-            wx.showToast({ title: '申请退款失败，请稍后重试', icon: 'none' })
           }
+        }).then(resp => {
+          wx.hideLoading()
+          if (resp.data.code !== 200) {
+            wx.showToast({ title: resp.data.msg || '申请退款失败', icon: 'none' })
+            return
+          }
+          wx.showToast({ title: '退款申请已提交', icon: 'success' })
+          this.getOrderDetail()
+        }).catch(() => {
+          wx.hideLoading()
+          wx.showToast({ title: '申请退款失败，请稍后重试', icon: 'none' })
         })
       }
     })

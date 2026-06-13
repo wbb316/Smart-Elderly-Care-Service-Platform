@@ -1,4 +1,5 @@
 const app = getApp()
+const { request } = require('../../../utils/request');
 Page({
   data: {
     leave: null,
@@ -17,37 +18,33 @@ Page({
 
   // 加载请假详情
   loadDetail(id) {
-    wx.request({
-      url: `http://localhost:8080/wxLogin/leave/${id}`,
-      method: 'GET',
-      header: { 'authorization': app.globalData.token },
-      success: (res) => {
-        if (res.data.code === 200) {
-          const item = res.data.data
-          this.setData({
-            leave: {
-              ...item,
-              startTime: this.formatTime(item.leaveStartTime),
-              endTime: this.formatTime(item.plannedReturnTime),
-              actualReturn: this.formatTime(item.actualReturnTime),
-              statusLabel: this.getStatusLabel(item.status)
-            }
-          })
-        }
+    request({
+      url: `/wxLogin/leave/${id}`,
+      method: 'GET'
+    }).then((res) => {
+      if (res.data.code === 200) {
+        const item = res.data.data
+        this.setData({
+          leave: {
+            ...item,
+            startTime: this.formatTime(item.leaveStartTime),
+            endTime: this.formatTime(item.plannedReturnTime),
+            actualReturn: this.formatTime(item.actualReturnTime),
+            statusLabel: this.getStatusLabel(item.status)
+          }
+        })
       }
     })
   },
 
   // 加载审批记录
   loadRecords(id) {
-    wx.request({
-      url: `http://localhost:8080/wxLogin/leave/records/${id}`,
-      method: 'GET',
-      header: { 'authorization': app.globalData.token },
-      success: (res) => {
-        if (res.data.code === 200) {
-          this.setData({ records: res.data.data || [] })
-        }
+    request({
+      url: `/wxLogin/leave/records/${id}`,
+      method: 'GET'
+    }).then((res) => {
+      if (res.data.code === 200) {
+        this.setData({ records: res.data.data || [] })
       }
     })
   },
@@ -87,32 +84,26 @@ Page({
       return
     }
     wx.showLoading({ title: '处理中...' })
-    wx.request({
-      url: 'http://localhost:8080/wxLogin/leave/return',
+    request({
+      url: '/wxLogin/leave/return',
       method: 'PUT',
-      header: {
-        'content-type': 'application/json',
-        'authorization': app.globalData.token
-      },
       data: {
         id: leave.id,
         actualReturnTime: actualReturnTime + ' 00:00:00',
         isReturned: 1
-      },
-      success: (res) => {
-        wx.hideLoading()
-        if (res.data.code === 200) {
-          wx.showToast({ title: '销假成功', icon: 'success' })
-          this.setData({ showBackModal: false })
-          this.loadDetail(leave.id)
-        } else {
-          wx.showToast({ title: res.data.msg || '操作失败', icon: 'none' })
-        }
-      },
-      fail: () => {
-        wx.hideLoading()
-        wx.showToast({ title: '网络请求失败', icon: 'error' })
       }
+    }).then((res) => {
+      wx.hideLoading()
+      if (res.data.code === 200) {
+        wx.showToast({ title: '销假成功', icon: 'success' })
+        this.setData({ showBackModal: false })
+        this.loadDetail(leave.id)
+      } else {
+        wx.showToast({ title: res.data.msg || '操作失败', icon: 'none' })
+      }
+    }).catch(() => {
+      wx.hideLoading()
+      wx.showToast({ title: '网络请求失败', icon: 'error' })
     })
   }
 })

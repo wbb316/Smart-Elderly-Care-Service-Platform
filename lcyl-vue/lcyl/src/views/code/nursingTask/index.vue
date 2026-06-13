@@ -162,7 +162,7 @@
         <el-form-item label="执行图片" prop="executeImage">
           <el-upload
               class="avatar-uploader"
-              action="http://172.16.20.242:8080/upload"
+              :action="uploadUrl"
               :show-file-list="false"
               :on-success="handleAvatarSuccess"
               :before-upload="beforeAvatarUpload"
@@ -204,6 +204,7 @@
 </template>
 
 <script setup lang="ts" name="NursingTask">
+const uploadUrl = import.meta.env.VITE_APP_BASE_API + '/upload'
 import { ref, reactive, onMounted, watch } from 'vue'
 import { listTask, getTaskDetail, cancelTask, executeTask, rescheduleTask, completedTask } from "@/api/code/nursingTask"
 import { listNurse } from "@/api/code/nurse"

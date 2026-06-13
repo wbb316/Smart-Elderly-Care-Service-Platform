@@ -1,4 +1,5 @@
 const app = getApp();
+const { request } = require('../../../utils/request');
 
 Page({
   data: {
@@ -88,74 +89,68 @@ Page({
 
     let payUrl;
     if (isRoomPay) {
-      payUrl = `http://localhost:8080/wxLogin/payRoomBooking/${targetId}`;
+      payUrl = `/wxLogin/payRoomBooking/${targetId}`;
     } else if (isBillPay) {
-      payUrl = `http://localhost:8080/wxLogin/payBill/${targetId}`;
+      payUrl = `/wxLogin/payBill/${targetId}`;
     } else {
-      payUrl = `http://localhost:8080/wxLogin/payOrder/${targetId}`;
+      payUrl = `/wxLogin/payOrder/${targetId}`;
     }
 
-    wx.request({
+    request({
       url: payUrl,
-      method: "POST",
-      header: {
-        "content-type": "application/json",
-        authorization: app.globalData.token || ""
-      },
-      success: (res) => {
-        wx.hideLoading();
-        if (!res.data || res.data.code !== 200) {
-          wx.showToast({
-            title: (res.data && res.data.msg) || "支付失败",
-            icon: "none"
+      method: "POST"
+    }).then((res) => {
+      wx.hideLoading();
+      if (!res.data || res.data.code !== 200) {
+        wx.showToast({
+          title: (res.data && res.data.msg) || "支付失败",
+          icon: "none"
+        });
+        return;
+      }
+
+      clearInterval(this.data.timer);
+      wx.showToast({ title: "支付成功", icon: "success" });
+
+      setTimeout(() => {
+        if (isBillPay) {
+          wx.redirectTo({
+            url: `/my/pages/myBillDetail/myBillDetail?id=${targetId}`
           });
           return;
         }
 
-        clearInterval(this.data.timer);
-        wx.showToast({ title: "支付成功", icon: "success" });
-
-        setTimeout(() => {
-          if (isBillPay) {
-            wx.redirectTo({
-              url: `/my/pages/myBillDetail/myBillDetail?id=${targetId}`
-            });
-            return;
-          }
-
-          if (isRoomPay) {
-            // 用 globalData 传参，避免 URL 编码导致中文变乱码
-            app.globalData.roomBookingResult = {
-              bookingId: targetId,
-              roomName: this.data.serviceName,
-              price: this.data.price,
-              bookingDate: this.data.serviceTime
-            };
-            wx.redirectTo({
-              url: `/home/pages/roomSuccess/roomSuccess`
-            });
-            return;
-          }
-
-          const data = this.data;
-          wx.navigateTo({
-            url: `/servicePage/pages/successPage/successPage?` +
-              `orderId=${data.orderId}` +
-              `&serviceName=${encodeURIComponent(data.serviceName)}` +
-              `&price=${data.price}` +
-              `&unit=${data.unit}` +
-              `&imageUrl=${encodeURIComponent(data.imageUrl || "")}` +
-              `&familyName=${encodeURIComponent(data.familyName)}` +
-              `&serviceTime=${encodeURIComponent(data.serviceTime)}` +
-              `&remark=${encodeURIComponent(data.remark || "")}` +
-              `&totalPrice=${data.totalPrice}`
+        if (isRoomPay) {
+          // 用 globalData 传参，避免 URL 编码导致中文变乱码
+          app.globalData.roomBookingResult = {
+            bookingId: targetId,
+            roomName: this.data.serviceName,
+            price: this.data.price,
+            bookingDate: this.data.serviceTime
+          };
+          wx.redirectTo({
+            url: `/home/pages/roomSuccess/roomSuccess`
           });
-        }, 1000);
-      },
-      fail: () => {
-        wx.hideLoading();
-        wx.showToast({ title: "网络异常，请稍后重试", icon: "none" });
-      }
+          return;
+        }
+
+        const data = this.data;
+        wx.navigateTo({
+          url: `/servicePage/pages/successPage/successPage?` +
+            `orderId=${data.orderId}` +
+            `&serviceName=${encodeURIComponent(data.serviceName)}` +
+            `&price=${data.price}` +
+            `&unit=${data.unit}` +
+            `&imageUrl=${encodeURIComponent(data.imageUrl || "")}` +
+            `&familyName=${encodeURIComponent(data.familyName)}` +
+            `&serviceTime=${encodeURIComponent(data.serviceTime)}` +
+            `&remark=${encodeURIComponent(data.remark || "")}` +
+            `&totalPrice=${data.totalPrice}`
+        });
+      }, 1000);
+    }).catch(() => {
+      wx.hideLoading();
+      wx.showToast({ title: "网络异常，请稍后重试", icon: "none" });
     });
   },
 

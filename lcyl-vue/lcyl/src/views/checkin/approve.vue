@@ -269,7 +269,6 @@ const submitApproval = () => {
       try {
         submitLoading.value = true
 
-        console.log('准备提交审批，参数:', {
           checkInId: currentCheckInId.value,
           approveResult: approveForm.approveResult,
           approveRemark: approveForm.approveRemark
@@ -282,7 +281,6 @@ const submitApproval = () => {
         })
 
         // 审批通过时老人由后端根据申请单自动创建并关联，无需前端再调 addElder
-        console.log('审批接口返回:', res)
 
         if (res.code === 200) {
           // 根据审批结果给出不同提示
@@ -306,7 +304,6 @@ const submitApproval = () => {
         submitLoading.value = false
       }
     }).catch(() => {
-      console.log('用户取消审批')
     })
   })
 }
@@ -317,9 +314,6 @@ const loadCheckInDetail = async () => {
     // 优先从 props 获取
     currentCheckInId.value = props.taskData?.checkInId || props.taskData?.id || route.query.checkInId || route.query.businessId
 
-    console.log('审批页面 - 获取的 checkInId:', currentCheckInId.value)
-    console.log('审批页面 - props.taskData:', props.taskData)
-    console.log('审批页面 - route.query:', route.query)
 
     if (!currentCheckInId.value) {
       ElMessage.warning('缺少入住申请信息')
@@ -327,7 +321,6 @@ const loadCheckInDetail = async () => {
     }
 
     const res = await getCheckin(currentCheckInId.value)
-    console.log('审批页面 - 接口返回数据:', res)
 
     if (res.code === 200 && res.data) {
       checkInInfo.value = res.data
@@ -336,9 +329,7 @@ const loadCheckInDetail = async () => {
       if (res.data.otherApplyInfo && res.data.reviewInfo) {
         try {
           const otherInfo = parseJsonValue(res.data.otherApplyInfo)
-          console.log('解析的 otherApplyInfo:', otherInfo)
           const reviewInfo = parseJsonValue(res.data.reviewInfo)
-          console.log('解析的 reviewInfo:', reviewInfo)
 
           // 基本信息
           if (otherInfo.basicForm) {
@@ -350,7 +341,6 @@ const loadCheckInDetail = async () => {
             checkInInfo.value.phone = otherInfo.basicForm.phone
             checkInInfo.value.createBy= res.data.applicat
             checkInInfo.value.createTime = res.data.createTime
-            console.log(res.data.createTime)
           }
         } catch (e) {
           console.error('解析 otherApplyInfo 失败:', e)
@@ -361,7 +351,6 @@ const loadCheckInDetail = async () => {
       if (res.data.reviewInfo) {
         try {
           const reviewInfo = parseJsonValue(res.data.reviewInfo)
-          console.log('解析的 reviewInfo:', reviewInfo)
 
           // 基本信息
           if (reviewInfo.imagePaths) {
@@ -381,7 +370,6 @@ const loadCheckInDetail = async () => {
             if (inner) evaluation = inner
           }
 
-          console.log('解析的 evaluation 数据:', evaluation)
 
           // 健康状况
           if (evaluation.healthForm) {
@@ -507,7 +495,6 @@ const loadCheckInDetail = async () => {
 }
 
 onMounted(() => {
-  console.log('审批组件已挂载')
   loadCheckInDetail()
 })
 </script>

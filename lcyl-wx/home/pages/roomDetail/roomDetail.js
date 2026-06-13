@@ -1,4 +1,5 @@
 const app = getApp()
+const { request } = require('../../../utils/request');
 Page({
   data: {
     roomInfo: {},
@@ -9,7 +10,6 @@ Page({
 
   onLoad(options) {
     const id = options.id
-    console.log("房型ID：", id)
     const now = new Date()
     const today = now.getFullYear() + '-' +
       String(now.getMonth() + 1).padStart(2, '0') + '-' +
@@ -19,23 +19,15 @@ Page({
   },
 
   getRoomDetail(id) {
-    wx.request({
-      url: 'http://localhost:8080/wxLogin/roomType/' + id,
-      method: 'GET',
-      header: {
-        'content-type': 'application/json',
-        'authorization': app.globalData.token || ''
-      },
-      success: (res) => {
-        console.log("房型详情返回：", res.data)
-        if (res.data.code === 200) {
-          this.setData({ roomInfo: res.data.data })
-          wx.setNavigationBarTitle({ title: res.data.data.name })
-        }
-      },
-      fail(err) {
-        console.log("请求失败", err)
+    request({
+      url: '/wxLogin/roomType/' + id,
+      method: 'GET'
+    }).then((res) => {
+      if (res.data.code === 200) {
+        this.setData({ roomInfo: res.data.data })
+        wx.setNavigationBarTitle({ title: res.data.data.name })
       }
+    }).catch(err => {
     })
   },
 

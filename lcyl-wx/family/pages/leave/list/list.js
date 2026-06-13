@@ -1,4 +1,5 @@
 const app = getApp()
+const { request } = require('../../../utils/request');
 Page({
   data: {
     tabs: [
@@ -34,26 +35,23 @@ Page({
     if (this.data.currentTab) {
       params.status = this.data.currentTab
     }
-    wx.request({
-      url: 'http://localhost:8080/wxLogin/leave/list',
+    request({
+      url: '/wxLogin/leave/list',
       method: 'GET',
-      data: params,
-      header: { 'authorization': app.globalData.token },
-      success: (res) => {
-        if (res.data.code === 200) {
-          const rows = (res.data.rows || []).map(item => ({
-            ...item,
-            startTime: this.formatTime(item.leaveStartTime),
-            endTime: this.formatTime(item.plannedReturnTime),
-            statusLabel: this.getStatusLabel(item.realStatus || item.status),
-            statusClass: this.getStatusClass(item.realStatus || item.status)
-          }))
-          this.setData({ leaveList: rows })
-        }
-      },
-      fail: () => wx.showToast({ title: '加载失败', icon: 'error' }),
-      complete: () => this.setData({ loading: false })
-    })
+      data: params
+    }).then((res) => {
+      if (res.data.code === 200) {
+        const rows = (res.data.rows || []).map(item => ({
+          ...item,
+          startTime: this.formatTime(item.leaveStartTime),
+          endTime: this.formatTime(item.plannedReturnTime),
+          statusLabel: this.getStatusLabel(item.realStatus || item.status),
+          statusClass: this.getStatusClass(item.realStatus || item.status)
+        }))
+        this.setData({ leaveList: rows })
+      }
+    }).catch(() => wx.showToast({ title: '加载失败', icon: 'error' }))
+    .finally(() => this.setData({ loading: false }))
   },
 
   formatTime(str) {

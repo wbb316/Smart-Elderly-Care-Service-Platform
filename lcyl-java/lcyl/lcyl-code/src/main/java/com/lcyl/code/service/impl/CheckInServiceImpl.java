@@ -29,6 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.lcyl.code.domain.Contractt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -36,6 +38,8 @@ import static org.apache.commons.collections4.CollectionUtils.containsAny;
 
 @Service
 public class CheckInServiceImpl implements ICheckInService {
+
+    private static final Logger log = LoggerFactory.getLogger(CheckInServiceImpl.class);
     //    @Autowired
 //    private RetreatServiceImpl retreatService;
     @Autowired
@@ -454,7 +458,8 @@ public class CheckInServiceImpl implements ICheckInService {
                     elder.setCreateBy(loginUser.getUserId());
                     elder.setUpdateBy(loginUser.getUserId());
                 }
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                log.warn("Activiti 操作异常", e);
             }
             elderCheckInMapper.insertElder(elder);
             checkIn.setElderId(elder.getId());
@@ -479,7 +484,8 @@ public class CheckInServiceImpl implements ICheckInService {
                 for (Task t : tasks) {
                     if (t != null && t.getId() != null) taskById.putIfAbsent(t.getId(), t);
                 }
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                log.warn("查询已分配任务失败, identity={}", identity, e);
             }
         }
 
@@ -501,7 +507,8 @@ public class CheckInServiceImpl implements ICheckInService {
         if (!legalCandidates.isEmpty()) {
             try {
                 ensureLegalCandidatesOnUnassignedSignTasks(legalCandidates);
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                log.warn("设置候选任务候选人失败", e);
             }
         }
 
@@ -511,7 +518,8 @@ public class CheckInServiceImpl implements ICheckInService {
                     .processDefinitionKey("checkin")
                     .taskUnassigned()// 只查未被分配给具体人的任务
                     .list();
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            log.warn("查询未认领任务失败", e);
         }
         if (allUnassigned == null || allUnassigned.isEmpty()) return checkIns;
         Set<String> addedProcessIds = new HashSet<>();
@@ -521,7 +529,8 @@ public class CheckInServiceImpl implements ICheckInService {
             List<IdentityLink> links = null;// 任务关联的用户
             try {
                 links = taskService.getIdentityLinksForTask(task.getId());
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                log.warn("Activiti 操作异常", e);
             }
             if (links == null || links.isEmpty()) continue;
             boolean match = false;
@@ -566,7 +575,7 @@ public class CheckInServiceImpl implements ICheckInService {
             checkIns.add(checkIn);
         } catch (Exception e) {
             // 捕获并打印异常信息
-            e.printStackTrace();
+            log.error("异常", e);
         }
     }
 
@@ -583,20 +592,23 @@ public class CheckInServiceImpl implements ICheckInService {
         try {
             CheckIn direct = checkInMapper.selectCheckInByProcessId(processInstanceId);
             if (direct != null) return direct;
-        } catch (Exception ignored) {
-        }
+        } catch (Exception e) {
+                log.warn("Activiti 操作异常", e);
+            }
 
         String businessKey = null;
         try {
             ProcessInstance pi = runtimeService.createProcessInstanceQuery().processInstanceId(processInstanceId).singleResult();
             if (pi != null) businessKey = pi.getBusinessKey();
-        } catch (Exception ignored) {
-        }
+        } catch (Exception e) {
+                log.warn("Activiti 操作异常", e);
+            }
         if (businessKey == null) {
             try {
                 HistoricProcessInstance hpi = historyService.createHistoricProcessInstanceQuery().processInstanceId(processInstanceId).singleResult();
                 if (hpi != null) businessKey = hpi.getBusinessKey();
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                log.warn("Activiti 操作异常", e);
             }
         }
 
@@ -604,8 +616,9 @@ public class CheckInServiceImpl implements ICheckInService {
         if (checkInId == null) return null;
         try {
             return checkInMapper.selectCheckInById(checkInId);
-        } catch (Exception ignored) {
-        }
+        } catch (Exception e) {
+                log.warn("Activiti 操作异常", e);
+            }
         return null;
     }
 
@@ -628,7 +641,9 @@ public class CheckInServiceImpl implements ICheckInService {
         try {
             // 尝试将ID部分转换为Long类型
             return Long.parseLong(idPart);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+                log.warn("Activiti 操作异常", e);
+                // original catch had:
             // 捕获所有异常并忽略，返回null
         }
         // 如果所有条件都不满足，返回null
@@ -658,8 +673,9 @@ public class CheckInServiceImpl implements ICheckInService {
                     break;
                 }
             }
-        } catch (Exception ignored) {
-        }
+        } catch (Exception e) {
+                log.warn("Activiti 操作异常", e);
+            }
         if (!allowed) throw new RuntimeException("无权限认领该任务");
 
         String assignee = identities.iterator().next();
@@ -732,7 +748,9 @@ public class CheckInServiceImpl implements ICheckInService {
             if (nickName != null && !nickName.isEmpty()) identities.add(nickName);
             // 添加去除空格后的昵称到集合（非空检查）
             if (nickName != null && !nickName.trim().isEmpty()) identities.add(nickName.trim());
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+                log.warn("Activiti 操作异常", e);
+                // original catch had:
             // 捕获所有异常但不做处理，直接忽略
         }
         // 返回包含用户身份标识的集合
@@ -870,13 +888,17 @@ public class CheckInServiceImpl implements ICheckInService {
         // 尝试精确匹配法务部的昵称
         try {
             safeAddAll(candidates, checkInMapper.selectNickNamesByDeptName("法务部"));
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+                log.warn("Activiti 操作异常", e);
+                // original catch had:
             // 忽略异常，继续执行
         }
         // 尝试精确匹配法务部的用户名
         try {
             safeAddAll(candidates, checkInMapper.selectUserNamesByDeptName("法务部"));
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+                log.warn("Activiti 操作异常", e);
+                // original catch had:
             // 忽略异常，继续执行
         }
 
@@ -885,26 +907,34 @@ public class CheckInServiceImpl implements ICheckInService {
             // 尝试模糊匹配法务相关的昵称
             try {
                 safeAddAll(candidates, checkInMapper.selectNickNamesByDeptNameLike("法务"));
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                log.warn("Activiti 操作异常", e);
+                // original catch had:
                 // 忽略异常，继续执行
             }
             // 尝试模糊匹配法务相关的用户名
             try {
                 safeAddAll(candidates, checkInMapper.selectUserNamesByDeptNameLike("法务"));
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                log.warn("Activiti 操作异常", e);
+                // original catch had:
                 // 忽略异常，继续执行
             }
         }
         // 尝试模糊匹配法务相关的角色昵称
         try {
             safeAddAll(candidates, checkInMapper.selectNickNamesByRoleNameLike("法务"));
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+                log.warn("Activiti 操作异常", e);
+                // original catch had:
             // 忽略异常，继续执行
         }
         // 尝试模糊匹配法务相关的角色用户名
         try {
             safeAddAll(candidates, checkInMapper.selectUserNamesByRoleNameLike("法务"));
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+                log.warn("Activiti 操作异常", e);
+                // original catch had:
             // 忽略异常，继续执行
         }
 

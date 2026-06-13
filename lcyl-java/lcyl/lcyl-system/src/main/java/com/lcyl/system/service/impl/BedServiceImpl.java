@@ -208,7 +208,7 @@ public class BedServiceImpl implements BedService {
             return 0;
         }
         // 2. 更新老人的 bed_id（把老人绑定到该床位）
-        elderMapper.updateBedId(bed.getId(), bed.getName());
+        elderMapper.updateBedId(bed.getId(), name);
 
         // 3. 更新床位信息
         return bedMapper.updateBed1(bed);

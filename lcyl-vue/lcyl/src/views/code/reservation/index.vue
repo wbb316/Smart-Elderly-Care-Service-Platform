@@ -205,7 +205,6 @@ const handleTypeFilter = async (value) => {
       reservationList.value = response.rows;
     }
     // 更新列表数据
-    // console.log(response)
     
   } catch (error) {
     console.error('筛选失败：', error);
@@ -223,7 +222,6 @@ const confirmVisit = async () => {
     ElMessage.warning('请选择来访时间！');
     return;
   }
-  console.log(visitForm.visitTime)
 
   try {
     // 调用接口提交到访时间（替换为你的实际接口）

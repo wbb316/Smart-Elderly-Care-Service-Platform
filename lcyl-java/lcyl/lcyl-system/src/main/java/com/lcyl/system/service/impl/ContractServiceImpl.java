@@ -13,6 +13,7 @@ import com.lcyl.system.service.IContractService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 合同Service业务层处理
@@ -65,6 +66,7 @@ public class ContractServiceImpl implements IContractService
     }
 
     @Override
+    @Transactional
     public int insertContract(Contract contract)
     {
         contract.setCreateTime(DateUtils.getNowDate());
@@ -72,6 +74,7 @@ public class ContractServiceImpl implements IContractService
     }
 
     @Override
+    @Transactional
     public int updateContract(Contract contract)
     {
         contract.setUpdateTime(DateUtils.getNowDate());
@@ -79,18 +82,21 @@ public class ContractServiceImpl implements IContractService
     }
 
     @Override
+    @Transactional
     public void batchUpdateContractStatus()
     {
         contractMapper.batchUpdateContractStatus();
     }
 
     @Override
+    @Transactional
     public int deleteContractByIds(Long[] ids)
     {
         return contractMapper.deleteContractByIds(ids);
     }
 
     @Override
+    @Transactional
     public int deleteContractById(Long id)
     {
         return contractMapper.deleteContractById(id);

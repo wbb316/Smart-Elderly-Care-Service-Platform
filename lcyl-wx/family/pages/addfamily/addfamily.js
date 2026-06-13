@@ -1,5 +1,6 @@
 // family/pages/addfamily/addfamily.js
 const app = getApp();
+const { request } = require('../../../utils/request');
 Page({
 
   data: {
@@ -14,20 +15,14 @@ Page({
 
   // 获取老人列表
   getElderList() {
-    wx.request({
-      url: 'http://localhost:8080/wxLogin/getElderList',
-      method: "GET",
-      header: {
-        'content-type': 'application/json',
-        'authorization': app.globalData.token
-      },
-      success: (resp) => {
-        if (resp.data.code == 200) {
-          console.log(resp.data);
-          this.setData({
-            elderList: resp.data.data
-          })
-        }
+    request({
+      url: '/wxLogin/getElderList',
+      method: "GET"
+    }).then((resp) => {
+      if (resp.data.code == 200) {
+        this.setData({
+          elderList: resp.data.data
+        })
       }
     })
   },
@@ -97,35 +92,30 @@ Page({
       return;
     }
 
-    wx.request({
-      url: 'http://localhost:8080/wxLogin/addInfo',
+    request({
+      url: '/wxLogin/addInfo',
       method: 'POST',
-      header: {
-        'authorization': app.globalData.token
-      },
       data: {
         elderId: selectedElderId,
         relation: relation
-      },
-      success: (res) => {
-        if (res.data.code === 200) {
-          wx.showToast({
-            title: '绑定成功',
-            icon: 'success'
-          });
-          setTimeout(() => {
-            wx.navigateBack();
-          }, 1500);
-        } else {
-          wx.showToast({
-            title: res.data.message || '绑定失败',
-            icon: 'none'
-          });
-        }
-      },
-      fail: () => {
-        wx.showToast({ title: '网络异常', icon: 'error' });
       }
+    }).then((res) => {
+      if (res.data.code === 200) {
+        wx.showToast({
+          title: '绑定成功',
+          icon: 'success'
+        });
+        setTimeout(() => {
+          wx.navigateBack();
+        }, 1500);
+      } else {
+        wx.showToast({
+          title: res.data.message || '绑定失败',
+          icon: 'none'
+        });
+      }
+    }).catch(() => {
+      wx.showToast({ title: '网络异常', icon: 'error' });
     });
   },
 

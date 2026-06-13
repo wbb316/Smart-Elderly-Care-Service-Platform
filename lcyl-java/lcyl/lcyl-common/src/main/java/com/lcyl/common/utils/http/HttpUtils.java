@@ -70,7 +70,7 @@ public class HttpUtils
         try
         {
             String urlNameString = StringUtils.isNotBlank(param) ? url + "?" + param : url;
-            log.info("sendGet - {}", urlNameString);
+            log.info("sendGet - {}", url);
             URL realUrl = new URL(urlNameString);
             URLConnection connection = realUrl.openConnection();
             connection.setRequestProperty("accept", "*/*");
@@ -83,7 +83,7 @@ public class HttpUtils
             {
                 result.append(line);
             }
-            log.info("recv - {}", result);
+            log.info("recv - response received, length={}", result != null ? result.length() : 0);
         }
         catch (ConnectException e)
         {
@@ -164,7 +164,7 @@ public class HttpUtils
             {
                 result.append(line);
             }
-            log.info("recv - {}", result);
+            log.info("recv - response received, length={}", result != null ? result.length() : 0);
         }
         catch (ConnectException e)
         {
@@ -240,7 +240,7 @@ public class HttpUtils
                     result.append(new String(ret.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8));
                 }
             }
-            log.info("recv - {}", result);
+            log.info("recv - response received, length={}", result != null ? result.length() : 0);
             conn.disconnect();
             br.close();
         }

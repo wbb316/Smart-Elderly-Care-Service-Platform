@@ -7,7 +7,8 @@ import java.util.Date;
 
 public class DateRangeUtil {
 
-    private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd");
+    private static final ThreadLocal<SimpleDateFormat> SDF = ThreadLocal.withInitial(
+            () -> new SimpleDateFormat("yyyy-MM-dd"));
 
     /**
      * 获取今日/本周/本月时间范围
@@ -59,8 +60,8 @@ public class DateRangeUtil {
      * 字符串转日期范围，并把结束时间设为 23:59:59
      */
     public static Date[] parseDateRange(String startDate, String endDate) throws ParseException {
-        Date start = SDF.parse(startDate);
-        Date end = SDF.parse(endDate);
+        Date start = SDF.get().parse(startDate);
+        Date end = SDF.get().parse(endDate);
 
         Calendar cal = Calendar.getInstance();
         cal.setTime(end);

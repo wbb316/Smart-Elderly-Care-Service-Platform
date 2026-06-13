@@ -35,7 +35,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectLcServiceOrderRefundList" parameterType="LcServiceOrderRefund" resultMap="LcServiceOrderRefundResult">
         <include refid="selectLcServiceOrderRefundVo"/>
-        <where>  
+        <where>
+            del_flag = '0'
             <if test="refundNo != null  and refundNo != ''"> and refund_no = #{refundNo}</if>
             <if test="orderId != null "> and order_id = #{orderId}</if>
             <if test="orderNo != null  and orderNo != ''"> and order_no = #{orderNo}</if>
@@ -56,7 +57,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     
     <select id="selectLcServiceOrderRefundById" parameterType="Long" resultMap="LcServiceOrderRefundResult">
         <include refid="selectLcServiceOrderRefundVo"/>
-        where id = #{id}
+        where id = #{id} and del_flag = '0'
     </select>
 
     <insert id="insertLcServiceOrderRefund" parameterType="LcServiceOrderRefund" useGeneratedKeys="true" keyProperty="id">
@@ -137,16 +138,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where id = #{id}
     </update>
 
-    <delete id="deleteLcServiceOrderRefundById" parameterType="Long">
-        delete from lc_service_order_refund where id = #{id}
-    </delete>
+    <update id="deleteLcServiceOrderRefundById" parameterType="Long">
+        update lc_service_order_refund set del_flag = '2', update_time = sysdate() where id = #{id}
+    </update>
 
-    <delete id="deleteLcServiceOrderRefundByIds" parameterType="String">
-        delete from lc_service_order_refund where id in
+    <update id="deleteLcServiceOrderRefundByIds" parameterType="String">
+        update lc_service_order_refund set del_flag = '2', update_time = sysdate() where id in
         <foreach item="id" collection="array" open="(" separator="," close=")">
             #{id}
         </foreach>
-    </delete>
+    </update>
 
     <update id="updateOrderStatusByOrderNo">
         update lc_service_order
@@ -161,6 +162,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <update id="updateBillTradeStatusByOrderNo">
         update lc_bill
         set trade_status = #{tradeStatus}, update_time = sysdate()
-        where del_flag = '0' and remark like concat('%', #{orderNo}, '%')
+        where del_flag = '0' and order_no = #{orderNo}
     </update>
 </mapper>

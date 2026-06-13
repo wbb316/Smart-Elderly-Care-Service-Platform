@@ -38,7 +38,7 @@ Page({
 
   getMyOrders() {
     request({
-      url: 'http://localhost:8080/wxLogin/myOrders',
+      url: '/wxLogin/myOrders',
       method: 'GET'
     })
       .then((res) => {
@@ -186,7 +186,7 @@ Page({
   cancelOrder(orderId) {
     wx.showLoading({ title: '处理中...' })
     request({
-      url: `http://localhost:8080/wxLogin/cancelOrder/${orderId}`,
+      url: `/wxLogin/cancelOrder/${orderId}`,
       method: 'POST'
     })
       .then(res => {
@@ -207,7 +207,7 @@ Page({
   applyRefund(orderId, refundReason) {
     wx.showLoading({ title: '提交中...' })
     request({
-      url: 'http://localhost:8080/wxLogin/applyRefund',
+      url: '/wxLogin/applyRefund',
       method: 'POST',
       data: {
         orderId,

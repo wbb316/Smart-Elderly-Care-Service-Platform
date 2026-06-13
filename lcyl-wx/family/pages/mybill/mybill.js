@@ -1,4 +1,5 @@
 const app = getApp()
+const { request } = require('../../../utils/request');
 Page({
   data: {
     tabs: [
@@ -43,30 +44,22 @@ Page({
       postData.tradeStatus = tradeStatus;
     }
 
-    wx.request({
-      url: 'http://localhost:8080/wxLogin/list', // 替换成真实接口域名
+    request({
+      url: '/wxLogin/list', // 替换成真实接口域名
       method: 'POST',
-      header: {
-        'content-type': 'application/json',
-        'authorization': app.globalData.token
-      },
-      data: postData,
-      success: (res) => {
-        console.log(res.data);
-        if (res.data.code === 200) {
-          this.setData({
-            billList: res.data.data || []
-          })
-        } else {
-          wx.showToast({ title: res.data.msg || '获取失败', icon: 'none' });
-        }
-      },
-      fail: () => {
-        wx.showToast({ title: '网络请求失败', icon: 'error' });
-      },
-      complete: () => {
-        wx.hideLoading();
+      data: postData
+    }).then((res) => {
+      if (res.data.code === 200) {
+        this.setData({
+          billList: res.data.data || []
+        })
+      } else {
+        wx.showToast({ title: res.data.msg || '获取失败', icon: 'none' });
       }
+    }).catch(() => {
+      wx.showToast({ title: '网络请求失败', icon: 'error' });
+    }).finally(() => {
+      wx.hideLoading();
     })
   },
 

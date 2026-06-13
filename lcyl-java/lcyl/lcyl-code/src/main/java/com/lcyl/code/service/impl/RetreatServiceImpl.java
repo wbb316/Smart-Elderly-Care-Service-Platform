@@ -183,7 +183,7 @@ public class RetreatServiceImpl implements IRetreatService {
         }
 
         // 合同信息
-        Contract contract = contractMapper.selectContractById(dto.getElderId());
+        Contract contract = contractMapper.selectContractByElderId(dto.getElderId());
         // 入住信息（顾问）
         CheckIn checkIn = checkInMapper.selectCheckInByElderId(dto.getElderId());
         // 护理员列表

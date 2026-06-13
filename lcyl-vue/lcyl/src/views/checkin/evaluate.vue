@@ -742,7 +742,6 @@ const handleSubmit = () => {
         reportContent: reportContent.value
       }
       
-      console.log('准备提交评估数据:', evaluationData)
       
       // 转换为 JSON 字符串
       const evaluationJson = JSON.stringify(evaluationData)
@@ -750,7 +749,6 @@ const handleSubmit = () => {
       // 调用后端接口完成评估任务，传递 evaluation 参数
       const res = await evaluateCheckin(currentCheckInId.value, { evaluation: evaluationJson })
       
-      console.log('评估接口返回:', res)
       
       if (res.code === 200) {
         ElMessage.success('评估报告已提交，进入审批流程')
@@ -775,7 +773,6 @@ const handleSubmit = () => {
       submitLoading.value = false
     }
   }).catch(() => {
-    console.log('用户取消提交')
   })
 }
 
@@ -792,7 +789,6 @@ const handleCancel = () => {
 
 // 加载任务数据
 onMounted(async () => {
-  console.log('评估页面收到的任务数据:', props.taskData)
   
   // 获取 businessId
   const businessId = props.taskData.checkInId || route.query.businessId || route.query.checkInId
@@ -808,7 +804,6 @@ onMounted(async () => {
     const res = await getCheckin(businessId)
     if (res.code === 200 && res.data) {
       currentCheckInData.value = res.data
-      console.log('加载入住申请数据成功:', res.data)
       
       // 构造操作记录（动态数据）
       operationRecords.value = [

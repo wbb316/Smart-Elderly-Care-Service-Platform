@@ -1,11 +1,9 @@
 const app = getApp()
+const { request, getBaseUrl } = require('../../../utils/request');
 Page({
   data: {
     statusBarHeight: 20,
     navBarHeight: 44,
-
-    // 后端基础地址：这里必须改成你自己的可访问地址
-    baseUrl: 'http://localhost:8080',
 
     defaultAvatar: '/images/head.png',
 
@@ -41,54 +39,36 @@ Page({
 
   // 加载当前用户资料
   loadUserInfo() {
-    // const token = wx.getStorageSync('token')
-  
-    // if (!token) {
-    //   wx.showToast({
-    //     title: '请先登录',
-    //     icon: 'none'
-    //   })
-    //   return
-    // }
-  
-    wx.request({
-      url: `${this.data.baseUrl}/wxLogin/get/profile`,
-      method: 'GET',
-      header: {
-        'content-type': 'application/json',
-        'authorization': app.globalData.token
-      },
-      success: (res) => {
-        const result = res.data || {}
-  
-        if (result.code === 200) {
-          const user = result.data || {}
-          this.setData({
-            'form.name': user.name || '',
-            'form.avatar': user.avatar || '',
-            'form.gender': user.gender || ''
-          })
-        } else {
-          wx.showToast({
-            title: result.msg || '获取失败',
-            icon: 'none'
-          })
-        }
-      },
-      fail: (err) => {
-        console.error('获取失败：', err)
+    request({
+      url: '/wxLogin/get/profile',
+      method: 'GET'
+    }).then((res) => {
+      const result = res.data || {}
+
+      if (result.code === 200) {
+        const user = result.data || {}
+        this.setData({
+          'form.name': user.name || '',
+          'form.avatar': user.avatar || '',
+          'form.gender': user.gender || ''
+        })
+      } else {
         wx.showToast({
-          title: '网络异常',
+          title: result.msg || '获取失败',
           icon: 'none'
         })
       }
+    }).catch((err) => {
+      wx.showToast({
+        title: '网络异常',
+        icon: 'none'
+      })
     })
   },
 
   goBack() {
     const pages = getCurrentPages()
-    console.log('当前页面栈长度：', pages.length)
-  
+
     if (pages.length > 1) {
       wx.navigateBack({
         delta: 1
@@ -137,7 +117,7 @@ Page({
     })
 
     wx.uploadFile({
-      url: `${this.data.baseUrl}/upload/image`,
+      url: getBaseUrl() + '/upload/image',
       filePath: filePath,
       name: 'file',
       success: (uploadRes) => {
@@ -170,7 +150,6 @@ Page({
         }
       },
       fail: (err) => {
-        console.error('上传失败：', err)
         wx.showToast({
           title: '上传失败',
           icon: 'none'
@@ -203,9 +182,9 @@ Page({
     if (this.data.saving) {
       return
     }
-  
+
     const { name, avatar, gender } = this.data.form
-  
+
     if (!name || !name.trim()) {
       wx.showToast({
         title: '请输入昵称',
@@ -213,7 +192,7 @@ Page({
       })
       return
     }
-  
+
     if (!gender) {
       wx.showToast({
         title: '请选择性别',
@@ -225,64 +204,56 @@ Page({
     this.setData({
       saving: true
     })
-  
+
     wx.showLoading({
       title: '保存中...',
       mask: true
     })
-  
-    wx.request({
-      url: `${this.data.baseUrl}/wxLogin/profile`,
+
+    request({
+      url: '/wxLogin/profile',
       method: 'PUT',
       data: {
         name: name.trim(),
         avatar,
         gender
-      },
-      header: {
-        'content-type': 'application/json',
-        'authorization': app.globalData.token
-      },
-      success: (res) => {
-        const result = res.data || {}
-  
-        if (result.code === 200) {
-          wx.setStorageSync('userInfo', {
-            name: name.trim(),
-            avatar,
-            gender
-          })
-  
-          wx.showToast({
-            title: result.msg || '保存成功',
-            icon: 'success'
-          })
-  
-          setTimeout(() => {
-            wx.navigateBack({
-              delta: 1
-            })
-          }, 1200)
-        } else {
-          wx.showToast({
-            title: result.msg || '保存失败',
-            icon: 'none'
-          })
-        }
-      },
-      fail: (err) => {
-        console.error('保存失败：', err)
+      }
+    }).then((res) => {
+      const result = res.data || {}
+
+      if (result.code === 200) {
+        wx.setStorageSync('userInfo', {
+          name: name.trim(),
+          avatar,
+          gender
+        })
+
         wx.showToast({
-          title: '网络异常',
+          title: result.msg || '保存成功',
+          icon: 'success'
+        })
+
+        setTimeout(() => {
+          wx.navigateBack({
+            delta: 1
+          })
+        }, 1200)
+      } else {
+        wx.showToast({
+          title: result.msg || '保存失败',
           icon: 'none'
         })
-      },
-      complete: () => {
-        this.setData({
-          saving: false
-        })
-        wx.hideLoading()
       }
+    }).catch((err) => {
+      wx.showToast({
+        title: '网络异常',
+        icon: 'none'
+      })
+    }).finally(() => {
+      this.setData({
+        saving: false
+      })
+      wx.hideLoading()
     })
   }
 })

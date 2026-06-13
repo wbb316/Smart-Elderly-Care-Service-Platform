@@ -146,7 +146,7 @@ public class ElderController extends BaseController
             throw new ServiceException("未找到老人的入住配置信息，请先办理入住");
         }
 
-        Contract contract = contractMapper.selectContractById(id);
+        Contract contract = contractMapper.selectContractByElderId(id);
         CheckIn checkIn = checkInMapper.selectCheckInById(id);
         List<String> assignNurse = assignNurseMapper.selectNurseByElderId(id);
         String string = checkInMapper.getlevelName(id);

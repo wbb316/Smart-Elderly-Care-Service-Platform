@@ -1,5 +1,6 @@
 // home/pages/customVisit/customVisit.js
 const app = getApp();
+const { request } = require('../../../utils/request');
 Page({
   data: {
     today: '', // 今天日期（用于picker限制）
@@ -40,7 +41,6 @@ Page({
         this.setData({
             familyName: e.detail.value
         });
-        console.log('输入的家人姓名:', e.detail.value);
     },
 
   // 选择日期 → 开启时间选择 + 自动判断禁用已过时间
@@ -80,7 +80,7 @@ Page({
     const {
       date
     } = this.data;
-    // 👇 这里自动拼接 :00 秒
+    // 这里自动拼接 :00 秒
     const selectedDateTime = `${date} ${time}:00`;
 
     this.setData({
@@ -128,8 +128,6 @@ Page({
       }
     });
 
-    console.log('禁用的时间列表:', disabledList);
-
     this.setData({
       disabledTimeList: disabledList
     });
@@ -176,81 +174,70 @@ Page({
     }
 
     // 提交给后端
-    wx.request({
-      url: 'http://localhost:8080/wxLogin/addvisitor',
+    request({
+      url: '/wxLogin/addvisitor',
       method: 'POST',
-      header: {
-        'content-type': 'application/json',
-        'authorization': app.globalData.token || '' // 这里是后端要的 token 字段
-      },
       data: {
         type: 1,
         name: name,
         phone: phone,
         olderName: familyName,
         appointmentTime: selectedDateTime
-      },
-      success: (res) => {
-        if (res.data.code === 200) {
-          if (res.data.data === 0) {
-            wx.showModal({
-              title: "提示",
-              content: "今日已取消3次预约，该账号当天不可再预约",
-              showCancel: false
-            });
-          } else if (res.data.data === -1) {
-            wx.showModal({
-              title: "提示",
-              content: "您的预约信息已存在，请勿重复预约",
-              showCancel: false
-            });
-          } else {
-            wx.showToast({
-              title: '预约成功',
-              icon: 'success',
-              success: () => {
-                setTimeout(() => {
-                  wx.navigateBack();
-                }, 1500);
-              }
-            });
-          }
+      }
+    }).then((res) => {
+      if (res.data.code === 200) {
+        if (res.data.data === 0) {
+          wx.showModal({
+            title: "提示",
+            content: "今日已取消3次预约，该账号当天不可再预约",
+            showCancel: false
+          });
+        } else if (res.data.data === -1) {
+          wx.showModal({
+            title: "提示",
+            content: "您的预约信息已存在，请勿重复预约",
+            showCancel: false
+          });
         } else {
           wx.showToast({
-            title: res.data.message || '预约失败',
-            icon: 'none'
+            title: '预约成功',
+            icon: 'success',
+            success: () => {
+              setTimeout(() => {
+                wx.navigateBack();
+              }, 1500);
+            }
           });
         }
-      },
-      fail: () => {
+      } else {
         wx.showToast({
-          title: '网络请求失败',
+          title: res.data.message || '预约失败',
           icon: 'none'
         });
       }
+    }).catch(() => {
+      wx.showToast({
+        title: '网络请求失败',
+        icon: 'none'
+      });
     });
   },
 
 
   getElder() {
-    wx.request({
-      url: "http://localhost:8080/wxLogin/getElder",
-      method: 'GET',
-      header: {
-        'content-type': 'application/json',
-        'authorization': app.globalData.token || '' // 这里是后端要的 token 字段
-      },
-      success: (res) => {
-        if (res.data.code == 200) {
-          if (res.data.data != null) {
-            this.setData({
-              elder: res.data.data
-            })
-          } else {
-            wx.switchTab({
-              url: '/pages/family/family',
-            })
-          }
+    request({
+      url: "/wxLogin/getElder",
+      method: 'GET'
+    }).then((res) => {
+      if (res.data.code == 200) {
+        if (res.data.data != null) {
+          this.setData({
+            elder: res.data.data
+          })
+        } else {
+          wx.switchTab({
+            url: '/pages/family/family',
+          })
         }
       }
     })

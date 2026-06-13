@@ -194,7 +194,6 @@ async function loadPlanList() {
   try {
     const res = await listPlan({ status: 0 });
     planList.value = res.rows;
-    console.log("加载的护理计划：", res.rows);
   } catch (e) {
     console.error("加载护理计划失败：", e);
     proxy.$modal.msgError("加载护理计划失败，请稍后重试！");

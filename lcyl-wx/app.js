@@ -1,7 +1,8 @@
 // app.js
 App({
   globalData: {
-    //token: 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiLllrXllrUiLCJ1c2VyaWQiOjR9.GGcY0cHgq4dVaAnEtAvUI_8-mNVjXqPi-Cy3qNPCHkX6K6xwOY2PuhxgfQFP41v-yUqhrCnG_3rBl-VrInA-sw',
+    // API 基础地址，部署时修改此处即可
+    baseUrl: 'http://localhost:8080',
     token: '',
     userName: null
   },

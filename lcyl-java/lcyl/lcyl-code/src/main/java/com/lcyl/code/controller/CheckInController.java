@@ -56,6 +56,7 @@ public class CheckInController extends BaseController {
     /**
      * 获取入住办理详细信息
      */
+    @PreAuthorize("@ss.hasPermi('system:checkin:query')")
     @GetMapping(value = "/{id}")
     public AjaxResult getInfo(@PathVariable("id") Long id) {
         return success(checkInService.selectCheckInById(id));
@@ -94,6 +95,7 @@ public class CheckInController extends BaseController {
     /**
      * 响应待办任务列表（已认领的任务）
      */
+    @PreAuthorize("@ss.hasPermi('system:checkin:query')")
     @GetMapping("/response")
     public AjaxResult responseCheckIn() {
         return success(checkInService.responseCheckIn());
@@ -102,6 +104,7 @@ public class CheckInController extends BaseController {
     /**
      * 获取候选任务列表（需要认领的任务）
      */
+    @PreAuthorize("@ss.hasPermi('system:checkin:query')")
     @GetMapping("/candidate-tasks")
     public AjaxResult getCandidateTasks() {
         return success(checkInService.getCandidateTasks());
@@ -112,6 +115,7 @@ public class CheckInController extends BaseController {
      *
      * @param taskId 任务ID
      */
+    @PreAuthorize("@ss.hasPermi('system:checkin:edit')")
     @PostMapping("/claim-task/{taskId}")
     public AjaxResult claimTask(@PathVariable String taskId) {
         try {
@@ -125,11 +129,13 @@ public class CheckInController extends BaseController {
     /**
      * 获取已完成任务列表
      */
+    @PreAuthorize("@ss.hasPermi('system:checkin:query')")
     @GetMapping("/completed-tasks")
     public AjaxResult getCompletedTasks() {
         return success(checkInService.getCompletedTasks());
     }
 
+    @PreAuthorize("@ss.hasPermi('system:checkin:query')")
     @GetMapping("/task-diagnose")
     public AjaxResult diagnoseTaskVisibility() {
         return success(checkInService.diagnoseTaskVisibility());
@@ -152,6 +158,7 @@ public class CheckInController extends BaseController {
      *
      * @param checkInId 入住办理ID
      */
+    @PreAuthorize("@ss.hasPermi('system:checkin:edit')")
     @PostMapping("/evaluate/{checkInId}")
     public AjaxResult evaluateCheckIn(@PathVariable Long checkInId, @RequestBody Map<String, Object> requestMap) {
         try {
@@ -169,6 +176,7 @@ public class CheckInController extends BaseController {
      *
      * @param checkInId 入住办理ID
      */
+    @PreAuthorize("@ss.hasPermi('system:checkin:edit')")
     @PostMapping("/approve/{checkInId}")
     public AjaxResult approveCheckIn(@PathVariable Long checkInId, @RequestBody Map<String, Object> vars) {
         try {
@@ -184,6 +192,7 @@ public class CheckInController extends BaseController {
      * @param checkInId 入住办理ID
      * @param requestMap 申请数据
      */
+    @PreAuthorize("@ss.hasPermi('system:checkin:edit')")
     @PostMapping("/reapply/{checkInId}")
     public AjaxResult reapplyCheckIn(@PathVariable Long checkInId, @RequestBody Map<String, Object> requestMap) {
         try {
@@ -204,7 +213,7 @@ public class CheckInController extends BaseController {
         return success(checkInService.viewCheckInDetail(checkInId));
     }
 
-    //完成签约
+    @PreAuthorize("@ss.hasPermi('system:checkin:edit')")
     @PostMapping("/complete-contract/{checkInId}")
     public AjaxResult completeContract(@PathVariable Long checkInId, @RequestBody(required = false) Map<String, Object> signInfo) {
         try {

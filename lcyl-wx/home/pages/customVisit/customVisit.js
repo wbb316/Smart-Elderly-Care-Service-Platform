@@ -1,5 +1,6 @@
 // home/pages/customVisit/customVisit.js
 const app = getApp();
+const { request } = require('../../../utils/request');
 Page({
   data: {
     today: '', // 今天日期（用于picker限制）
@@ -58,14 +59,14 @@ Page({
   // 选择具体时间 + 拼接日期时间
   selectTime(e) {
     if (this.data.timeDisabled) return;
-    
+
     const time = e.currentTarget.dataset.time;
     if (this.data.disabledTimeList.includes(time)) return;
-  
+
     const { date } = this.data;
-    // 👇 这里自动拼接 :00 秒
-    const selectedDateTime = `${date} ${time}:00`; 
-  
+    // 这里自动拼接 :00 秒
+    const selectedDateTime = `${date} ${time}:00`;
+
     this.setData({
       selectedTime: time,
       selectedDateTime: selectedDateTime
@@ -77,18 +78,18 @@ Page({
     const now = new Date();
     const today = this.formatDate(now);
     const disabledList = [];
-  
+
     // 如果选择的不是今天 → 不禁用任何时间
     if (selectDate !== today) {
       this.setData({ disabledTimeList: [] });
       return;
     }
-  
+
     // 如果是今天 → 禁用已过的时间
     const nowHour = now.getHours();
     const nowMinute = now.getMinutes();
     const currentTimeMinutes = nowHour * 60 + nowMinute;
-  
+
     // 上午时间判断
     const morning = this.data.morningTimes;
     morning.forEach(t => {
@@ -98,7 +99,7 @@ Page({
         disabledList.push(t);
       }
     });
-  
+
     // 下午时间判断
     const afternoon = this.data.afternoonTimes;
     afternoon.forEach(t => {
@@ -108,19 +109,17 @@ Page({
         disabledList.push(t);
       }
     });
-  
-    console.log('禁用的时间列表:', disabledList);
-    
+
     this.setData({ disabledTimeList: disabledList });
-    
+
     // 如果当前选中的时间被禁用，清空选中状态
     if (disabledList.includes(this.data.selectedTime)) {
       this.setData({
         selectedTime: '',
         selectedDateTime: ''
       });
-      wx.showToast({ 
-        title: '所选时间已过期，请重新选择', 
+      wx.showToast({
+        title: '所选时间已过期，请重新选择',
         icon: 'none',
         duration: 2000
       });
@@ -152,51 +151,45 @@ Page({
     }
 
     // 提交给后端
-    wx.request({
-      url: 'http://localhost:8080/wxLogin/addvisitor',
+    request({
+      url: '/wxLogin/addvisitor',
       method: 'POST',
-      header: {
-        'content-type': 'application/json',
-        'authorization': app.globalData.token|| ''  // 这里是后端要的 token 字段
-      },
       data: {
-        type: 0, 
+        type: 0,
         name: name,
         phone: phone,
         appointmentTime: selectedDateTime
-      },
-      success: (res) => {
-        if (res.data.code === 200) {
-          if (res.data.data === 0) {
-            wx.showModal({
-              title: "提示",
-              content: "今日已取消3次预约，该账号当天不可再预约",
-              showCancel: false
-            });
-          } else if (res.data.data === -1) {
-            wx.showModal({
-              title: "提示",
-              content: "您的预约信息已存在，请勿重复预约",
-              showCancel: false
-            });
-          } else {
-            wx.showToast({
-              title: '预约成功',
-              icon: 'success',
-              success: () => {
-                setTimeout(() => {
-                  wx.navigateBack();
-                }, 1500);
-              }
-            });
-          }
-        } else {
-          wx.showToast({ title: res.data.message || '预约失败', icon: 'none' });
-        }
-      },
-      fail: () => {
-        wx.showToast({ title: '网络请求失败', icon: 'none' });
       }
+    }).then((res) => {
+      if (res.data.code === 200) {
+        if (res.data.data === 0) {
+          wx.showModal({
+            title: "提示",
+            content: "今日已取消3次预约，该账号当天不可再预约",
+            showCancel: false
+          });
+        } else if (res.data.data === -1) {
+          wx.showModal({
+            title: "提示",
+            content: "您的预约信息已存在，请勿重复预约",
+            showCancel: false
+          });
+        } else {
+          wx.showToast({
+            title: '预约成功',
+            icon: 'success',
+            success: () => {
+              setTimeout(() => {
+                wx.navigateBack();
+              }, 1500);
+            }
+          });
+        }
+      } else {
+        wx.showToast({ title: res.data.message || '预约失败', icon: 'none' });
+      }
+    }).catch(() => {
+      wx.showToast({ title: '网络请求失败', icon: 'none' });
     });
   },
 

@@ -7,6 +7,7 @@ import com.lcyl.system.domain.dto.AddInfo;
 import com.lcyl.system.domain.vo.BedVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.lcyl.system.mapper.ElderMapper;
 import com.lcyl.system.domain.Elder;
 import com.lcyl.system.service.IElderService;
@@ -48,6 +49,7 @@ public class ElderServiceImpl implements IElderService
     }
 
     @Override
+    @Transactional
     public int insertElder(Elder elder)
     {
         elder.setCreateTime(DateUtils.getNowDate());
@@ -55,6 +57,7 @@ public class ElderServiceImpl implements IElderService
     }
 
     @Override
+    @Transactional
     public int updateElder(Elder elder)
     {
         elder.setUpdateTime(DateUtils.getNowDate());
@@ -62,6 +65,7 @@ public class ElderServiceImpl implements IElderService
     }
 
     @Override
+    @Transactional
     public int insertInfo(AddInfo addInfo)
     {
         Long memberId = UserThreadLocal.getUserId();
@@ -76,20 +80,29 @@ public class ElderServiceImpl implements IElderService
     }
 
     @Override
+    @Transactional
     public int deleteElderInfoById(Long id)
     {
         return elderMapper.delElderInfoById(id);
     }
 
     @Override
+    @Transactional
     public int deleteElderByIds(Long[] ids)
     {
+        // 先清理老人与家属的关联关系
+        for (Long id : ids) {
+            elderMapper.delElderInfoById(id);
+        }
+        // 注意：contract、check_in_config、assign_nurse 等关联表暂未自动清理，需在 ElderController 中补充
         return elderMapper.deleteElderByIds(ids);
     }
 
     @Override
+    @Transactional
     public int deleteElderById(Long id)
     {
+        elderMapper.delElderInfoById(id);
         return elderMapper.deleteElderById(id);
     }
 }

@@ -1,4 +1,5 @@
 const app = getApp()
+const { request } = require('../../utils/request');
 Page({
   data: {
     serviceList: [],
@@ -17,14 +18,12 @@ Page({
   },
 
   onLoad(options) {
-    console.log("=== servicePage onLoad ===")
     this.getServiceList()
     this.getFamilyList()
     this.setData({ nowDate: new Date().toISOString().slice(0, 10) })
   },
 
   onShow() {
-    console.log("=== servicePage onShow ===")
     // tab页每次切换过来时刷新数据
     if (this.data.originalList.length === 0) {
       this.getServiceList()
@@ -39,29 +38,25 @@ Page({
 
   doSearch() {
     const { originalList, searchKey } = this.data
-    if (!searchKey) { 
-      this.setData({ serviceList: originalList }); 
-      return 
+    if (!searchKey) {
+      this.setData({ serviceList: originalList });
+      return
     }
     const filtered = originalList.filter(i => i.itemName.includes(searchKey))
     this.setData({ serviceList: filtered })
   },
 
   getServiceList() {
-    wx.request({
-      url: "http://localhost:8080/wxLogin/item/list",
-      header: { authorization: app.globalData.token || '' },
-      success: res => {
-        if (res.data.code === 200) {
-          this.setData({ serviceList: res.data.rows, originalList: res.data.rows })
-        } else {
-          wx.showToast({ title: res.data.msg || "加载服务列表失败", icon: "none" })
-        }
-      },
-      fail: err => {
-        console.error("获取服务列表失败", err)
-        wx.showToast({ title: "网络请求失败，请检查后端是否启动", icon: "none" })
+    request({
+      url: "/wxLogin/item/list"
+    }).then(res => {
+      if (res.data.code === 200) {
+        this.setData({ serviceList: res.data.rows, originalList: res.data.rows })
+      } else {
+        wx.showToast({ title: res.data.msg || "加载服务列表失败", icon: "none" })
       }
+    }).catch(err => {
+      wx.showToast({ title: "网络请求失败，请检查后端是否启动", icon: "none" })
     })
   },
 
@@ -72,82 +67,75 @@ Page({
   showOrderPopup(e) {
     const id = e.currentTarget.dataset.id
     const service = this.data.serviceList.find(i => i.id == id)
-    this.setData({ 
-      showOrderPopup: true, 
-      selectedService: service, 
-      familyName: "", 
-      serviceDate: "", 
-      serviceTime: "" 
+    this.setData({
+      showOrderPopup: true,
+      selectedService: service,
+      familyName: "",
+      serviceDate: "",
+      serviceTime: ""
     })
   },
 
-  hideOrderPopup() { 
-    this.setData({ showOrderPopup: false }) 
+  hideOrderPopup() {
+    this.setData({ showOrderPopup: false })
   },
 
   getFamilyList() {
-    wx.request({
-      url: "http://localhost:8080/wxLogin/getElderBedList",
-      method: "POST",
-      header: { authorization: app.globalData.token },
-      success: res => { 
-        if (res.data.code === 200) {
-          this.setData({ familyList: res.data.data || [] })
-        } else {
-          this.setData({ familyList: [] })
-        }
-      },
-      fail: () => {
+    request({
+      url: "/wxLogin/getElderBedList",
+      method: "POST"
+    }).then(res => {
+      if (res.data.code === 200) {
+        this.setData({ familyList: res.data.data || [] })
+      } else {
         this.setData({ familyList: [] })
       }
+    }).catch(() => {
+      this.setData({ familyList: [] })
     })
   },
 
   // 检查家人列表，控制弹窗显示（先请求后端，再判断）
   checkFamilyAndShowPicker() {
-    const app = getApp()
-    wx.request({
-      url: "http://localhost:8080/wxLogin/getElderBedList",
-      method: "POST",
-      header: { authorization: app.globalData.token },
-      success: res => {
-        if (res.data.code === 200 && res.data.data && res.data.data.length > 0) {
-          this.setData({ familyList: res.data.data })
-          this.setData({ showFamilyList: true })
-        } else {
-          this.setData({ familyList: [] })
-          this.setData({ showNoFamilyTip: true })
-        }
-      },
-      fail: () => {
+    request({
+      url: "/wxLogin/getElderBedList",
+      method: "POST"
+    }).then(res => {
+      if (res.data.code === 200 && res.data.data && res.data.data.length > 0) {
+        this.setData({ familyList: res.data.data })
+        this.setData({ showFamilyList: true })
+      } else {
         this.setData({ familyList: [] })
         this.setData({ showNoFamilyTip: true })
       }
+    }).catch(() => {
+      this.setData({ familyList: [] })
+      this.setData({ showNoFamilyTip: true })
     })
   },
 
-  showFamilyPicker() { 
-    this.setData({ showFamilyList: true }) 
+  showFamilyPicker() {
+    this.setData({ showFamilyList: true })
   },
 
-  hideFamilyPicker() { 
-    this.setData({ showFamilyList: false }) 
+  hideFamilyPicker() {
+    this.setData({ showFamilyList: false })
   },
 
   selectFamilyItem(e) {
-    this.setData({ 
-      familyId: e.currentTarget.dataset.id, 
-      familyName: e.currentTarget.dataset.name, 
-      showFamilyList: false 
+    this.setData({
+      familyId: e.currentTarget.dataset.id,
+      familyName: e.currentTarget.dataset.name,
+      showFamilyList: false
     })
   },
 
-  onDateChange(e) { 
-    this.setData({ serviceDate: e.detail.value }) 
+  onDateChange(e) {
+    this.setData({ serviceDate: e.detail.value })
   },
 
-  onTimeChange(e) { 
-    this.setData({ serviceTime: e.detail.value }) 
+  onTimeChange(e) {
+    this.setData({ serviceTime: e.detail.value })
   },
 
   // 关闭无家人弹窗
@@ -165,7 +153,7 @@ Page({
 
   submitOrder() {
     const { familyName, serviceDate, serviceTime, selectedService, familyId } = this.data
-    
+
     if (!familyName || !serviceDate || !serviceTime) {
       wx.showToast({ title: '请完善信息', icon: 'none' })
       return

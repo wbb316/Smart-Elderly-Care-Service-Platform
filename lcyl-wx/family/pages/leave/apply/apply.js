@@ -1,4 +1,5 @@
 const app = getApp()
+const { request } = require('../../../utils/request');
 Page({
   data: {
     elderList: [],
@@ -23,14 +24,12 @@ Page({
 
   // 加载可请假老人列表（家属绑定的老人）
   loadElderOptions() {
-    wx.request({
-      url: 'http://localhost:8080/wxLogin/getElderBedList',
-      method: 'POST',
-      header: { 'authorization': app.globalData.token },
-      success: (res) => {
-        if (res.data.code === 200) {
-          this.setData({ elderList: res.data.data || [] })
-        }
+    request({
+      url: '/wxLogin/getElderBedList',
+      method: 'POST'
+    }).then((res) => {
+      if (res.data.code === 200) {
+        this.setData({ elderList: res.data.data || [] })
       }
     })
   },
@@ -46,14 +45,12 @@ Page({
 
   // 加载老人基本信息
   loadElderFormInfo(elderId) {
-    wx.request({
-      url: `http://localhost:8080/wxLogin/leave/formInfo/${elderId}`,
-      method: 'GET',
-      header: { 'authorization': app.globalData.token },
-      success: (res) => {
-        if (res.data.code === 200) {
-          this.setData({ elderInfo: res.data.data })
-        }
+    request({
+      url: `/wxLogin/leave/formInfo/${elderId}`,
+      method: 'GET'
+    }).then((res) => {
+      if (res.data.code === 200) {
+        this.setData({ elderInfo: res.data.data })
       }
     })
   },
@@ -107,13 +104,9 @@ Page({
     this.setData({ submitting: true })
     wx.showLoading({ title: '提交中...' })
 
-    wx.request({
-      url: 'http://localhost:8080/wxLogin/leave/submit',
+    request({
+      url: '/wxLogin/leave/submit',
       method: 'POST',
-      header: {
-        'content-type': 'application/json',
-        'authorization': app.globalData.token
-      },
       data: {
         elderId: selectedElder.id,
         companionType: companionType,
@@ -122,23 +115,20 @@ Page({
         leaveStartTime: leaveStartTime + ' 00:00:00',
         plannedReturnTime: plannedReturnTime + ' 00:00:00',
         leaveReason: leaveReason.trim()
-      },
-      success: (res) => {
-        wx.hideLoading()
-        if (res.data.code === 200) {
-          wx.showToast({ title: '提交成功', icon: 'success' })
-          setTimeout(() => wx.navigateBack(), 1500)
-        } else {
-          wx.showToast({ title: res.data.msg || '提交失败', icon: 'none' })
-        }
-      },
-      fail: () => {
-        wx.hideLoading()
-        wx.showToast({ title: '网络请求失败', icon: 'error' })
-      },
-      complete: () => {
-        this.setData({ submitting: false })
       }
+    }).then((res) => {
+      wx.hideLoading()
+      if (res.data.code === 200) {
+        wx.showToast({ title: '提交成功', icon: 'success' })
+        setTimeout(() => wx.navigateBack(), 1500)
+      } else {
+        wx.showToast({ title: res.data.msg || '提交失败', icon: 'none' })
+      }
+    }).catch(() => {
+      wx.hideLoading()
+      wx.showToast({ title: '网络请求失败', icon: 'error' })
+    }).finally(() => {
+      this.setData({ submitting: false })
     })
   }
 })

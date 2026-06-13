@@ -135,7 +135,7 @@
         <el-form-item label="护理图片" prop="imageUrl">
           <el-upload
               class="avatar-uploader"
-              action="http://172.16.20.242:8080/upload"
+              :action="uploadUrl"
               :show-file-list="false"
               :on-success="handleAvatarSuccess"
               :before-upload="beforeAvatarUpload"
@@ -177,6 +177,7 @@
 </template>
 
 <script setup lang="ts" name="NursingItem">
+const uploadUrl = import.meta.env.VITE_APP_BASE_API + '/upload'
 import type { NursingItem, ItemQueryParams } from "@/types/api/code/item"
 import { listItem, getItem, delItem, addItem, updateItem, checkItemNameUnique } from "@/api/code/nursingItem"
 import { checkItemIsReferenced } from "@/api/code/plan"

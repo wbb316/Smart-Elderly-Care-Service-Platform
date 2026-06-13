@@ -574,7 +574,6 @@ const handleNext = async () => {
 
     // 提交申请（新开流程）
     applyCheckin(payload).then(res => {
-      console.log('提交申请返回:', res)
       
       if (res.code === 200) {
         ElMessage.success('提交申请成功！')
@@ -582,7 +581,6 @@ const handleNext = async () => {
         // 获取返回的 checkInId
         const checkInId = res.data?.checkInId || res.data?.id
         
-        console.log('获取到的 checkInId:', checkInId)
         
         // 跳转到成功页面
         setTimeout(() => {

@@ -574,7 +574,6 @@ const loadCheckInDetail = async () => {
   try {
     const checkInId = route.query.checkInId || route.query.businessId || route.params.id
     
-    console.log('获取入住申请详情，checkInId:', checkInId)
     
     if (!checkInId) {
       ElMessage.warning('缺少入住申请信息')
@@ -583,15 +582,12 @@ const loadCheckInDetail = async () => {
     
     const res = await getCheckin(checkInId)
     
-    console.log('获取入住申请详情返回结果:', res)
     
     if (res.code === 200 && res.data) {
-      console.log('入住申请详情数据:', res.data)
       
       // 更新步骤
       if (res.data.flowStatus !== undefined) {
         activeStep.value = parseInt(res.data.flowStatus)
-        console.log('更新步骤:', activeStep.value)
       }
       
       const otherInfo = parseJsonValue(res.data.otherApplyInfo)
@@ -622,7 +618,6 @@ const loadCheckInDetail = async () => {
         try {
           // 尝试解析 evaluation，处理可能的双重编码
           let evaluation = res.data.evaluation
-          console.log('原始 evaluation 数据:', evaluation)
           if (typeof evaluation === 'string') {
             try {
               evaluation = JSON.parse(evaluation)
@@ -636,92 +631,60 @@ const loadCheckInDetail = async () => {
               return
             }
           }
-          console.log('解析 evaluation 结果:', evaluation)
 
           if (evaluation && evaluation.evaluation != null) {
             const inner = parseJsonValue(evaluation.evaluation)
             if (inner) {
               evaluation = inner
-              console.log('解包 evaluation.evaluation 结果:', evaluation)
             }
           }
           
           // 检查 evaluation 字段的结构
-          console.log('evaluation 字段的所有属性:', Object.keys(evaluation))
           
           // 填充健康评估
-          console.log('开始填充健康评估...')
           
           // 检查 healthForm 字段是否存在
           if (evaluation.healthForm) {
-            console.log('healthForm 字段存在，开始处理...')
-            console.log('healthForm 字段的所有属性:', Object.keys(evaluation.healthForm))
             
             // 处理 medications 字段（复数形式）到 medication 字段（单数形式）的映射
             if (evaluation.healthForm.medications) {
-              console.log('处理 medications 字段:', evaluation.healthForm.medications)
               // 将 medications 数组转换为字符串
               healthForm.medication = evaluation.healthForm.medications.map(med => `${med.name} (${med.dosage}, ${med.method})`).join('; ')
-              console.log('medication 字段值:', healthForm.medication)
             }
             // 处理其他字段
             if (evaluation.healthForm.diseases) {
-              console.log('处理 diseases 字段:', evaluation.healthForm.diseases)
               healthForm.diseases = evaluation.healthForm.diseases
-              console.log('diseases 字段值:', healthForm.diseases)
             }
             if (evaluation.healthForm.fallStatus) {
-              console.log('处理 fallStatus 字段:', evaluation.healthForm.fallStatus)
               healthForm.fallStatus = evaluation.healthForm.fallStatus
-              console.log('fallStatus 字段值:', healthForm.fallStatus)
             }
             if (evaluation.healthForm.lostStatus) {
-              console.log('处理 lostStatus 字段:', evaluation.healthForm.lostStatus)
               healthForm.lostStatus = evaluation.healthForm.lostStatus
-              console.log('lostStatus 字段值:', healthForm.lostStatus)
             }
             if (evaluation.healthForm.chokeStatus) {
-              console.log('处理 chokeStatus 字段:', evaluation.healthForm.chokeStatus)
               healthForm.chokeStatus = evaluation.healthForm.chokeStatus
-              console.log('chokeStatus 字段值:', healthForm.chokeStatus)
             }
             if (evaluation.healthForm.suicideStatus) {
-              console.log('处理 suicideStatus 字段:', evaluation.healthForm.suicideStatus)
               healthForm.suicideStatus = evaluation.healthForm.suicideStatus
-              console.log('suicideStatus 字段值:', healthForm.suicideStatus)
             }
             if (evaluation.healthForm.pressure) {
-              console.log('处理 pressure 字段:', evaluation.healthForm.pressure)
               healthForm.pressure = evaluation.healthForm.pressure
-              console.log('pressure 字段值:', healthForm.pressure)
             }
             if (evaluation.healthForm.skinCare) {
-              console.log('处理 skinCare 字段:', evaluation.healthForm.skinCare)
               healthForm.skinCare = evaluation.healthForm.skinCare
-              console.log('skinCare 字段值:', healthForm.skinCare)
             }
             if (evaluation.healthForm.checkResult) {
-              console.log('处理 checkResult 字段:', evaluation.healthForm.checkResult)
               healthForm.checkResult = evaluation.healthForm.checkResult
-              console.log('checkResult 字段值:', healthForm.checkResult)
             }
-            console.log('填充健康评估:', healthForm)
           } else {
-            console.log('healthForm 字段不存在')
             // 尝试直接从 evaluation 字段获取健康评估信息
-            console.log('尝试直接从 evaluation 字段获取健康评估信息...')
             if (evaluation.medications) {
-              console.log('直接处理 medications 字段:', evaluation.medications)
               healthForm.medication = evaluation.medications.map(med => `${med.name} (${med.dosage}, ${med.method})`).join('; ')
-              console.log('medication 字段值:', healthForm.medication)
             }
             if (evaluation.diseases) {
-              console.log('直接处理 diseases 字段:', evaluation.diseases)
               healthForm.diseases = evaluation.diseases
-              console.log('diseases 字段值:', healthForm.diseases)
             }
             // 其他字段的处理...
-            console.log('直接填充健康评估:', healthForm)
           }
           
           // 填充能力评估问题
@@ -738,19 +701,16 @@ const loadCheckInDetail = async () => {
                 q.score = scoreMap.get(key)
               }
             })
-            console.log('填充能力评估问题分数')
           }
           
           // 填充精神状态
           if (evaluation.mentalForm) {
             Object.assign(mentalForm, evaluation.mentalForm)
-            console.log('填充精神状态:', mentalForm)
           }
           
           // 填充感知觉与沟通
           if (evaluation.perceptionForm) {
             Object.assign(perceptionForm, evaluation.perceptionForm)
-            console.log('填充感知觉与沟通:', perceptionForm)
           }
           
           // 填充社会参与
@@ -759,13 +719,11 @@ const loadCheckInDetail = async () => {
             if (evaluation.socialForm.lifeAbility) {
               socialForm.livingSkills = [evaluation.socialForm.lifeAbility]
             }
-            console.log('填充社会参与:', socialForm)
           }
           
           // 填充报告内容
           if (evaluation.reportContent) {
             reportContent.value = evaluation.reportContent
-            console.log('填充报告内容:', reportContent.value)
           }
         } catch (e) {
           console.error('解析 evaluation 失败:', e)

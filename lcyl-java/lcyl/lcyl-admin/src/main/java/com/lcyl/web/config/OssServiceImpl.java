@@ -41,7 +41,7 @@ public class OssServiceImpl implements OssService {
         String uploadUrl = "https://" + bucketName + "." + endpoint + "/" + key;
         return uploadUrl;
     }
-    public String upload1(InputStream in, String filename) {
+    private String upload1(InputStream in, String filename) {
         final SimpleDateFormat sdf = new SimpleDateFormat(dirDatePattern);
         final String dirDatePath = sdf.format(new Date());
         // 目录固定：lcyl/contract/20260325

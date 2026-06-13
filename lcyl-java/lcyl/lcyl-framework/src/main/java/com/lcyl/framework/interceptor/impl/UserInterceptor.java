@@ -22,11 +22,11 @@ public class UserInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse
             response, Object handler) throws Exception {
-        System.out.println("进入UserInterceptor拦截器");
+        log.info("进入UserInterceptor拦截器");
         //从请求头获取token
         String token = request.getHeader("authorization");
         // 判断是否存在token
-        log.info("开始解析 customer user token {}", token);
+        log.info("开始解析 customer user token");
         if (ObjectUtils.isEmpty(token)) {
         //token失效
             throw new BaseException("小程序登录", "401", null, "没有权限,请登录");

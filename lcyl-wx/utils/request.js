@@ -1,8 +1,23 @@
 const app = getApp();
 
 /**
+ * 获取 API 基础地址
+ */
+function getBaseUrl() {
+  return (app && app.globalData && app.globalData.baseUrl) || 'http://localhost:8080';
+}
+
+/**
+ * 拼接完整 URL
+ */
+function buildUrl(path) {
+  const base = getBaseUrl();
+  const cleanPath = path.startsWith('/') ? path : '/' + path;
+  return base + cleanPath;
+}
+
+/**
  * 封装 wx.request，自动注入 token 并处理登录过期
- * 用法与原 wx.request 完全一致
  */
 function request(options) {
   return new Promise((resolve, reject) => {
@@ -17,11 +32,14 @@ function request(options) {
       header["Authorization"] = token;
     }
 
+    // 自动补全 baseUrl（如果传入的 url 没有协议前缀）
+    const url = options.url && options.url.startsWith('http') ? options.url : buildUrl(options.url);
+
     wx.request({
       ...options,
+      url,
       header,
       success: (res) => {
-        // 检查是否需要登录
         if (isTokenExpired(res)) {
           handleTokenExpired();
           reject(new Error("登录已过期"));
@@ -40,11 +58,9 @@ function request(options) {
  * 判断 token 是否过期
  */
 function isTokenExpired(res) {
-  // HTTP 401
   if (res.statusCode === 401) {
     return true;
   }
-  // 后端返回的 code 为 401 或 500 且消息中包含"登录"关键字
   if (res.data) {
     const code = res.data.code;
     const msg = res.data.msg || "";
@@ -76,4 +92,4 @@ function handleTokenExpired() {
   }, 2000);
 }
 
-module.exports = { request, isTokenExpired };
+module.exports = { request, buildUrl, getBaseUrl, isTokenExpired };

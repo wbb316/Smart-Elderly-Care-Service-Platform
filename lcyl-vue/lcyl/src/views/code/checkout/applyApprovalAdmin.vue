@@ -286,7 +286,6 @@ const taskId = route.query.taskId;
 const bussinessId = route.query.businessId;
 const userUser = useUserStore()
 
-console.log('接收到的 taskId:', taskId);
 // 1. 表单数据模型
 const form = reactive({
     approvalResult: 1, // 默认选中审批通过
@@ -319,7 +318,6 @@ const data = reactive({
 onMounted(() => {
   // fetchData() // 示例：调用 API 获取数据库数据
   getCheckout(bussinessId).then(resp => {
-    console.log(resp.data);
     if (resp.data) {
       data.retreatCode = resp.data.retreatCode;
       data.oldManName = resp.data.name;
@@ -382,7 +380,6 @@ const handleSubmit = () => {
     type: 'warning'
   }).then(() => {
     // 这里写接口请求逻辑
-    console.log('提交的数据：', form)
     const dto = {
       taskId:taskId,
       action:form.approvalResult,
@@ -391,9 +388,7 @@ const handleSubmit = () => {
         updateBy:userUser.nickName
       }
     }
-    console.log(dto)
     completeTask(dto).then(resp=>{
-      console.log(resp.data)
       router.push({
         path: '/retreat/checkout',
       });

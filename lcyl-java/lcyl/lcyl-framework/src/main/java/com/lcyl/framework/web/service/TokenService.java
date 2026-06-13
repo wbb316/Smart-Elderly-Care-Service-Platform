@@ -22,7 +22,9 @@ import com.lcyl.common.utils.ip.IpUtils;
 import com.lcyl.common.utils.uuid.IdUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 
 /**
  * token验证处理
@@ -181,11 +183,13 @@ public class TokenService
     {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + expireMinutes * 60 * 1000L);
+        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         String token = Jwts.builder()
-                .setClaims(claims)
-                .setIssuedAt(now)
-                .setExpiration(expiration)
-                .signWith(SignatureAlgorithm.HS512, secret).compact();
+                .claims(claims)
+                .issuedAt(now)
+                .expiration(expiration)
+                .signWith(key)
+                .compact();
         return token;
     }
 
@@ -197,10 +201,12 @@ public class TokenService
      */
     public Claims parseToken(String token)
     {
+        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         return Jwts.parser()
-                .setSigningKey(secret)
-                .parseClaimsJws(token)
-                .getBody();
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     /**

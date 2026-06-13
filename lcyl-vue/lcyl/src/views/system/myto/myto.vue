@@ -44,7 +44,6 @@ const formatDateTime = (dateTime) => {
 const loadTodoList = async () => {
   const res = await getMyTodoList()
   if (res.code === 200) {
-    console.log(res.data)
     todoList.value = res.data
     const formattedData = res.data.map(item => ({
       ...item,
@@ -61,7 +60,6 @@ const handleApprove = (row) => {
     taskId: row.taskId,
     businessId: row.businessId
   }
-  console.log(row)
   switch (row.category) {
     case '退住':
       if (row.taskName === "护理组长审批") {

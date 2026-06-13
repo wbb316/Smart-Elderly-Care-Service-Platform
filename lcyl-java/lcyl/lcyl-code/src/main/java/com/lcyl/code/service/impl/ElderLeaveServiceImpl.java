@@ -39,6 +39,9 @@ import java.util.*;
  */
 @Service
 public class ElderLeaveServiceImpl implements IElderLeaveService {
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ElderLeaveServiceImpl.class);
+
     private static final String PROCESS_DEFINITION_KEY = "Process_1"; //BPMN 中 process 的 id
     private static final String TASK_KEY_APPLY = "Activity_0esuoda"; //提交申请节点的唯一id
     private static final String TASK_KEY_SUPERVISOR = "Activity_13rgojy"; //主管审批节点的唯一id
@@ -160,23 +163,23 @@ public class ElderLeaveServiceImpl implements IElderLeaveService {
 
     // 从流程变量中获取某个“审批人/处理人”，如果取不到就用默认值
     private String resolveFlowAssignee(
-            String executionId,  // 流程实例ID（或执行ID），用来定位是哪一个流程实例
-            String variableName, // 变量名
-            String fallback) // 兜底值（默认值）
+            String executionId,
+            String variableName,
+            String fallback)
     {
-        // 如果 executionId 为空，直接返回默认值
         if (!StringUtils.hasText(executionId)) {
+            log.warn("resolveFlowAssignee: executionId为空, 使用兜底值 fallback={}", fallback);
             return fallback;
         }
         try {
-            // 从流程中取变量
             Object value = runtimeService.getVariable(executionId, variableName);
-            // 判断变量是否有效
             if (value instanceof String && StringUtils.hasText((String) value)) {
                 return (String) value;
             }
+            log.warn("resolveFlowAssignee: 流程变量未设置或无效, executionId={}, variableName={}, 使用兜底值 fallback={}",
+                    executionId, variableName, fallback);
         } catch (Exception e) {
-            // ignore
+            log.warn("获取流程变量失败, executionId={}, variableName={}", executionId, variableName, e);
         }
         return fallback;
     }

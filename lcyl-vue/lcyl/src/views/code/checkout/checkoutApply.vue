@@ -202,7 +202,6 @@ const rules = reactive({
 const loadElderList = async () => {
   const res = await getAllElder();
   if (res.code === 200) {
-    console.log('老人数据：', res.data);
 
     // 只筛选出 status = 1 的数据赋值给列表
     elderList.value = (res.data || []).filter(item => item.status == 1);

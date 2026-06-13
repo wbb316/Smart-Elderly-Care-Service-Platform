@@ -189,7 +189,6 @@ const handleTypeFilter = async (value) => {
       arrivalList.value = response.rows;
     }
     // 更新列表数据
-    // console.log(response)
 
   } catch (error) {
     console.error('筛选失败：', error);

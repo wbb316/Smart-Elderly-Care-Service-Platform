@@ -419,7 +419,6 @@ const submitReapplication = async () => {
       isReapply: true // 标识这是重新申请
     }
     
-    console.log('准备提交重新申请，数据:', submitData)
     
     // 调用重新申请接口
     const res = await reapplyCheckin(checkInInfo.value.id, submitData)

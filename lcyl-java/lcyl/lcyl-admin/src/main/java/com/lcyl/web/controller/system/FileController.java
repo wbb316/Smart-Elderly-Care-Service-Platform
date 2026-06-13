@@ -9,9 +9,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 public class FileController {
+
+    private static final Logger log = LoggerFactory.getLogger(FileController.class);
 
     @Autowired
     private OssService ossService;
@@ -36,10 +40,10 @@ public class FileController {
             String newFileName = createNewFileName(file);
             String uploadUrl = ossService.upload(in, newFileName);
             Result r = Result.success(uploadUrl);
-            System.out.println("r = " + r);
+            // debug output removed
             return r;
         }catch (Exception e) {
-            e.printStackTrace();
+            log.error("文件上传失败", e);
             return Result.error("上传文件失败");
 
         }
@@ -86,7 +90,7 @@ public class FileController {
             String uploadUrl = ossService.uploadContractPdf(in, originalFilename);
             return Result.success(uploadUrl);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("文件上传失败", e);
             return Result.error("PDF上传失败：" + e.getMessage());
         }
     }

@@ -23,7 +23,7 @@ Page({
 
   loadElderTabs() {
     request({
-      url: "http://localhost:8080/wxLogin/getElderBedList",
+      url: "/wxLogin/getElderBedList",
       method: "POST"
     })
       .then((res) => {
@@ -55,7 +55,7 @@ Page({
   getMyBills() {
     this.setData({ loading: true });
     request({
-      url: "http://localhost:8080/wxLogin/myBills",
+      url: "/wxLogin/myBills",
       method: "GET"
     })
       .then((res) => {

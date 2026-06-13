@@ -1,8 +1,9 @@
 const app =getApp();
+const { request } = require('../../utils/request');
 Page({
   data: {
     familyList: [
-      
+
     ],
     showFamilyModal: false, // 控制弹窗显隐
     inputFamilyName: ''     // 弹窗输入内容
@@ -17,14 +18,10 @@ Page({
       success: (res) => {
         if (res.confirm) {
           // 执行解绑逻辑，如更新数据
-         wx.request({
-          url: `http://localhost:8080/wxLogin/deleteElder/${id}`,
-          method:'DELETE',
-          header: {
-            'content-type': 'application/json',
-            'authorization': app.globalData.token
-          },
-          success:(res) =>{
+         request({
+          url: `/wxLogin/deleteElder/${id}`,
+          method:'DELETE'
+         }).then((res) =>{
             if(res.data.code == 200){
               wx.showToast({
                 title: '解绑成功',
@@ -33,8 +30,7 @@ Page({
               });
               this.getElderList();
             }
-          }
-         })
+          })
         }
       }
     });
@@ -63,23 +59,18 @@ Page({
   },
 
   getElderList() {
-    wx.request({
-      url: 'http://localhost:8080/wxLogin/getElderBedList',
-      method: "POST",
-      header: {
-        'content-type': 'application/json',
-        'authorization': app.globalData.token
-      },
-      success: (resp) => {
-        if (resp.data.code == 200) {
-          this.setData({
-            familyList: resp.data.data
-          })
-        }
+    request({
+      url: '/wxLogin/getElderBedList',
+      method: "POST"
+    }).then((resp) => {
+      if (resp.data.code == 200) {
+        this.setData({
+          familyList: resp.data.data
+        })
       }
     })
   },
-  
+
   onLoad(options) {
     this.getElderList()
   },

@@ -57,7 +57,10 @@
         "pages/myService/myService",
         "pages/roomDetail/roomDetail",
         "pages/roomConfirm/roomConfirm",
-        "pages/roomSuccess/roomSuccess"
+        "pages/roomSuccess/roomSuccess",
+        "pages/registerElder/registerElder",
+        "pages/question/question",
+        "pages/myOrder/myOrder"
       ]
     }, {
       "root": "family",

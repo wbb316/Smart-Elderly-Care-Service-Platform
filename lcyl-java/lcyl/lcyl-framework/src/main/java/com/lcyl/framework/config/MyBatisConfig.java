@@ -13,6 +13,8 @@ import org.mybatis.spring.boot.autoconfigure.SpringBootVFS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
@@ -32,6 +34,8 @@ import com.lcyl.common.utils.StringUtils;
 @Configuration
 public class MyBatisConfig
 {
+    private static final Logger log = LoggerFactory.getLogger(MyBatisConfig.class);
+
     @Autowired
     private Environment env;
 
@@ -64,7 +68,7 @@ public class MyBatisConfig
                             }
                             catch (ClassNotFoundException e)
                             {
-                                e.printStackTrace();
+                                log.error("异常", e);
                             }
                         }
                     }
@@ -86,7 +90,7 @@ public class MyBatisConfig
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            log.error("异常", e);
         }
         return typeAliasesPackage;
     }

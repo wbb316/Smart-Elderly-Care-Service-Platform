@@ -271,7 +271,7 @@ public class WxLoginServiceImpl implements WxLoginService
         order.setBedNo(elder.getBedNumber());
         order.setProjectId(nursingItem.getId());
         order.setProjectName(nursingItem.getItemName());
-        order.setOrderAmount(BigDecimal.valueOf(nursingItem.getPrice() == null ? 0D : nursingItem.getPrice()));
+        order.setOrderAmount(nursingItem.getPrice() == null ? BigDecimal.ZERO : new BigDecimal(String.valueOf(nursingItem.getPrice())));
         order.setExpectedServiceTime(parseExpectedServiceTime(dto.getExpectedServiceTime()));
         order.setRemark(dto.getRemark());
         order.setOrderStatus("0");

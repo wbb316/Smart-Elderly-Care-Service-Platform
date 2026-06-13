@@ -1,4 +1,5 @@
 const app = getApp()
+const { request } = require('../../../utils/request');
 Page({
   data: {
     id: "",
@@ -34,31 +35,24 @@ Page({
   },
 
   getDetail() {
-    wx.request({
-      url: "http://localhost:8080/wxLogin/item/list",
-      header: { authorization: app.globalData.token || '' },
-      success: (res) => {
-        if (res.data.code === 200) {
-          let list = res.data.rows || []
-          let current = list.find(item => item.id == this.data.id)
-          this.setData({ detail: current })
-        }
+    request({
+      url: "/wxLogin/item/list"
+    }).then((res) => {
+      if (res.data.code === 200) {
+        let list = res.data.rows || []
+        let current = list.find(item => item.id == this.data.id)
+        this.setData({ detail: current })
       }
     })
   },
 
   getFamilyList() {
-    wx.request({
-      url: "http://localhost:8080/wxLogin/getElderBedList",
-      method: "POST",
-      header: {
-        'content-type': 'application/json',
-        'authorization': app.globalData.token
-      },
-      success: (resp) => {
-        if (resp.data.code == 200) {
-          this.setData({ familyList: resp.data.data || [] })
-        }
+    request({
+      url: "/wxLogin/getElderBedList",
+      method: "POST"
+    }).then((resp) => {
+      if (resp.data.code == 200) {
+        this.setData({ familyList: resp.data.data || [] })
       }
     })
   },

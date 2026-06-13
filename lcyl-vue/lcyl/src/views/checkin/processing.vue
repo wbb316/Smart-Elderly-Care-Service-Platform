@@ -83,8 +83,6 @@ const backToList = () => {
 onMounted(async () => {
   const checkInId = route.query.checkInId || route.query.businessId
   
-  console.log('审批中页面 URL 参数:', route.query)
-  console.log('获取到的 checkInId:', checkInId)
   
   if (!checkInId) {
     ElMessage.warning('缺少申请信息')
@@ -93,12 +91,10 @@ onMounted(async () => {
 
   try {
     const res = await getCheckin(checkInId)
-    console.log('接口返回数据:', res)
     
     if (res.code === 200 && res.data) {
       applyInfo.value = res.data
       
-      console.log('加载的申请信息:', applyInfo.value)
       
       // 根据老人姓名自定义消息
       if (res.data.elderName) {

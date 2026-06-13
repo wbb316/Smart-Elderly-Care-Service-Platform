@@ -133,7 +133,6 @@ function updateBreadcrumb(taskName) {
   // 更新浏览器标题
   document.title = `${breadcrumbTitle} - 绿城养老`
   
-  console.log('面包屑更新为:', breadcrumbTitle)
 }
 
 onMounted(async () => {
@@ -166,7 +165,6 @@ onMounted(async () => {
       // 更新面包屑标题
       updateBreadcrumb(urlParams.currentTaskName)
       
-      console.log('从 URL 加载任务，当前任务ID:', urlParams.currentTaskId, '任务名称:', urlParams.currentTaskName)
       return
     }
     
@@ -194,7 +192,6 @@ onMounted(async () => {
         // 更新面包屑标题
         updateBreadcrumb(taskName)
         
-        console.log('从接口加载任务，当前任务ID:', taskKey, '任务名称:', taskName)
       } else {
         ElMessage.error(res.msg || '获取任务详情失败')
         // 失败时加载默认组件
@@ -208,7 +205,6 @@ onMounted(async () => {
       // 新申请时也更新面包屑
       updateBreadcrumb('发起入住申请')
       
-      console.log('新发起申请，加载 apply 组件')
     }
   } catch (error) {
     console.error('加载任务失败:', error)

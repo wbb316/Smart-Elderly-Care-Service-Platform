@@ -1,4 +1,5 @@
 const app = getApp()
+const { request } = require('../../../utils/request');
 Page({
   data: {
     statusBarHeight: 20,
@@ -91,7 +92,7 @@ Page({
       // 返回页面需要的所有字段
       return {
         ...item,
-        formattedTime, 
+        formattedTime,
         time,
         typeText,
         typeClass,
@@ -106,25 +107,18 @@ Page({
 
 getFilteredList() {
   const status = this.data.currentTab
-    console.log(status);
-    wx.request({
-      url: 'http://localhost:8080/wxLogin/selectVisitInfo',
+    request({
+      url: '/wxLogin/selectVisitInfo',
       method: 'POST',
       data: {
         status: status
-      },
-      header: {
-        'content-type': 'application/json',
-        'authorization': app.globalData.token
-      },
-      success: (res) => {
-        console.log(res.data.data);
-        if (res.data.code === 200) {
-          const formattedList = this.processListData(res.data.data)
-          this.setData({
-            filteredList: formattedList // 直接使用后端返回的数据
-          })
-        }
+      }
+    }).then((res) => {
+      if (res.data.code === 200) {
+        const formattedList = this.processListData(res.data.data)
+        this.setData({
+          filteredList: formattedList // 直接使用后端返回的数据
+        })
       }
     })
   },
@@ -146,12 +140,11 @@ getFilteredList() {
 
   switchTab(e) {
     const tabValue = e.currentTarget.dataset.value;
-  
-    console.log("当前点击的tab值：", tabValue); // 先看这里有没有值
+
     this.setData({
       currentTab:tabValue
     })
-    
+
     this.getFilteredList() // 重新请求后端数据
   },
  // 点击取消按钮
@@ -170,30 +163,25 @@ getFilteredList() {
 },
 
 doCancel(id, force = false) {
-  wx.request({
-    url: `http://localhost:8080/wxLogin/deleteVisit/${id}?force=${force}`,
-    method: "PUT",
-    header: {
-      'content-type': 'application/json',
-      'authorization': app.globalData.token|| ''  // 这里是后端要的 token 字段
-    },
-    success: (res) => {
-      if (res.data.code === 200 && res.data.data === 2) {
-        // 今天已取消2次，再次取消将无法当天预约，弹窗二次确认
-        wx.showModal({
-          title: "警告",
-          content: "取消三次后该账号当天不能再预约，是否还要继续？",
-          success: (modalRes) => {
-            if (modalRes.confirm) {
-              this.doCancel(id, true);
-            }
+  request({
+    url: `/wxLogin/deleteVisit/${id}?force=${force}`,
+    method: "PUT"
+  }).then((res) => {
+    if (res.data.code === 200 && res.data.data === 2) {
+      // 今天已取消2次，再次取消将无法当天预约，弹窗二次确认
+      wx.showModal({
+        title: "警告",
+        content: "取消三次后该账号当天不能再预约，是否还要继续？",
+        success: (modalRes) => {
+          if (modalRes.confirm) {
+            this.doCancel(id, true);
           }
-        });
-      } else {
-        wx.showToast({ title: "取消成功" });
-        // 取消成功后刷新列表
-        this.getFilteredList();
-      }
+        }
+      });
+    } else {
+      wx.showToast({ title: "取消成功" });
+      // 取消成功后刷新列表
+      this.getFilteredList();
     }
   });
 },
@@ -210,7 +198,7 @@ doCancel(id, force = false) {
       modalType = 2
     }
 
-    
+
 
     const modalContent =
       modalType === 1 ?

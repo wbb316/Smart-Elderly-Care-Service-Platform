@@ -75,8 +75,6 @@ const continueApply = () => {
 onMounted(async () => {
   const checkInId = route.query.checkInId || route.query.businessId
   
-  console.log('成功页面 URL 参数:', route.query)
-  console.log('获取到的 checkInId:', checkInId)
   
   if (!checkInId) {
     ElMessage.warning('缺少申请信息')
@@ -86,18 +84,15 @@ onMounted(async () => {
 
   try {
     const res = await getCheckin(checkInId)
-    console.log('接口返回数据:', res)
     
     if (res.code === 200 && res.data) {
       applyInfo.value = res.data
       
-      console.log('加载的申请信息:', applyInfo.value)
       
       // 解析 otherApplyInfo 获取老人姓名
       if (res.data.otherApplyInfo) {
         try {
           const otherInfo = JSON.parse(res.data.otherApplyInfo)
-          console.log('解析的 otherApplyInfo:', otherInfo)
           
           if (otherInfo.basicForm && otherInfo.basicForm.name) {
             applyInfo.value.elderName = otherInfo.basicForm.name

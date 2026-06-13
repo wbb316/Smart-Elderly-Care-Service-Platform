@@ -68,8 +68,7 @@ service.interceptors.request.use((config: any) => {
   }
   return config
 }, (error: any) => {
-    console.log(error)
-    Promise.reject(error)
+    return Promise.reject(error)
 })
 
 // 响应拦截器
@@ -109,7 +108,7 @@ service.interceptors.response.use((res: any) => {
     }
   },
   (error: any) => {
-    console.log('err' + error)
+    // 请求失败
     let { message } = error
     if (message == "Network Error") {
       message = "后端接口连接异常"

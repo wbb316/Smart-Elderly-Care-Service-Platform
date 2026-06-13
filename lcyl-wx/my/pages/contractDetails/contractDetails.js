@@ -27,7 +27,7 @@ Page({
    * 生命周期函数--监听页面显示
    */
   onLoad(options) {
-    console.log("接收的合同详情参数：", options)
+    // 接收合同详情参数
   
     // 接收传来的 2 个参数
     const roomCode = options.roomCode       // 房间号

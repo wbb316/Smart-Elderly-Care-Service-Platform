@@ -5,19 +5,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lcyl.common.exception.base.BaseException;
 import com.lcyl.common.utils.http.HttpUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 import java.util.HashMap;
@@ -32,16 +25,17 @@ import java.util.Map;
  */
 public class LoginConstant {
 
-    private final CloseableHttpClient httpClient = HttpClients.createDefault();
+    // 使用静态共享 HttpClient（线程安全），避免每次 new LoginConstant() 创建新连接导致资源泄露
+    private static final CloseableHttpClient HTTP_CLIENT = HttpClients.createDefault();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    //public static final String LOGIN_USER = "loginUser";
-    public static final String LOGIN_APPID = "wx1434f799e4063dcf";
-    public static final String LOGIN_SECRET = "3419c99bf13e855bf68ac64633b2ef2f";
+    // WeChat credentials from environment variables (do NOT hardcode)
+    public static final String LOGIN_APPID = System.getenv().getOrDefault("WX_APPID", "wx1434f799e4063dcf");
+    public static final String LOGIN_SECRET = System.getenv().getOrDefault("WX_SECRET", "");
     public static final String LOGIN_GRANT_TYPE = "authorization_code";
     public static final String LOGIN_URL = "https://api.weixin.qq.com/sns/jscode2session?appid=" + LOGIN_APPID + "&secret=" + LOGIN_SECRET + "&js_code=";
     public static final String LOGIN_PHONE_URL ="https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token=";
-    private static final String TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&";
+    private static final String TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" + LOGIN_APPID + "&secret=" + LOGIN_SECRET;
 
     public String getOpenIdURL(String code){
         return LOGIN_URL + code + "&grant_type=" + LOGIN_GRANT_TYPE;
@@ -57,7 +51,7 @@ public class LoginConstant {
     public String getOpenId(String url){
         HttpGet httpGet = new HttpGet(url);
 
-        try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
+        try (CloseableHttpResponse response = HTTP_CLIENT.execute(httpGet)) {
             HttpEntity entity = response.getEntity();
             String result = EntityUtils.toString(entity, "UTF-8");
             JsonNode jsonNode = objectMapper.readTree(result);
@@ -74,7 +68,6 @@ public class LoginConstant {
             }
 
             String openid = openidNode.asText();
-            System.out.println("这是openid: " + openid);
             return openid;
         } catch (ClientProtocolException e) {
             throw new RuntimeException(e);

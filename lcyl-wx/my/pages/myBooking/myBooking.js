@@ -1,4 +1,5 @@
 const app = getApp()
+const { request } = require('../../../utils/request');
 
 Page({
   data: {
@@ -12,36 +13,30 @@ Page({
 
   getMyBookings() {
     this.setData({ loading: true })
-    wx.request({
-      url: 'http://localhost:8080/wxLogin/myRoomBookings',
-      method: 'GET',
-      header: {
-        authorization: app.globalData.token || ''
-      },
-      success: (res) => {
-        if (res.data.code === 200) {
-          const statusMap = { '0': '待支付', '1': '已支付', '5': '已关闭' }
-          const list = (res.data.data || []).map(item => ({
-            id: item.id,
-            bookingNo: item.bookingNo,
-            roomName: item.roomTypeName,
-            photo: item.roomTypePhoto,
-            price: item.price ? Number(item.price).toFixed(2) : '0.00',
-            bookingDate: item.bookingDate,
-            status: item.status,
-            statusText: statusMap[item.status] || '未知',
-            remark: item.remark || '-',
-            createTime: item.createTime ? item.createTime.replace('T', ' ').substring(0, 16) : '-'
-          }))
-          this.setData({ bookingList: list })
-        }
-      },
-      fail: () => {
-        wx.showToast({ title: '查询失败', icon: 'none' })
-      },
-      complete: () => {
-        this.setData({ loading: false })
+    request({
+      url: '/wxLogin/myRoomBookings',
+      method: 'GET'
+    }).then((res) => {
+      if (res.data.code === 200) {
+        const statusMap = { '0': '待支付', '1': '已支付', '5': '已关闭' }
+        const list = (res.data.data || []).map(item => ({
+          id: item.id,
+          bookingNo: item.bookingNo,
+          roomName: item.roomTypeName,
+          photo: item.roomTypePhoto,
+          price: item.price ? Number(item.price).toFixed(2) : '0.00',
+          bookingDate: item.bookingDate,
+          status: item.status,
+          statusText: statusMap[item.status] || '未知',
+          remark: item.remark || '-',
+          createTime: item.createTime ? item.createTime.replace('T', ' ').substring(0, 16) : '-'
+        }))
+        this.setData({ bookingList: list })
       }
+    }).catch(() => {
+      wx.showToast({ title: '查询失败', icon: 'none' })
+    }).finally(() => {
+      this.setData({ loading: false })
     })
   },
 

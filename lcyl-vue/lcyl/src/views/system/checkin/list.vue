@@ -140,10 +140,8 @@ const completedLoading = ref(false)
 
 /** 加载待办任务 */
 function loadTodoList() {
-  console.log('开始加载待办任务...')
   todoLoading.value = true
   responseCheckin().then(response => {
-    console.log('待办任务接口返回:', response)
     todoList.value = response.data || []
     todoLoading.value = false
   }).catch((error) => {
@@ -154,14 +152,11 @@ function loadTodoList() {
 
 /** 加载候选任务（签约办理等需认领的任务） */
 function loadCandidateList() {
-  console.log('开始加载候选任务...')
   candidateLoading.value = true
   getCandidateTasks().then(response => {
-    console.log('候选任务接口返回:', response)
     candidateList.value = response.data != null ? response.data : []
     if (candidateList.value.length === 0) {
       diagnoseTaskVisibility().then(diag => {
-        console.log('候选任务为空，后端诊断信息:', diag)
       }).catch(err => {
         console.error('获取任务诊断信息失败:', err)
       })
@@ -177,16 +172,11 @@ function loadCandidateList() {
 /** 加载已完成任务 */
 function loadCompletedList() {
   completedLoading.value = true
-  console.log('开始加载已完成任务列表...')
   
   getCompletedTasks().then(response => {
-    console.log('已完成任务接口返回:', response)
-    console.log('已完成任务数据:', response.data)
-    console.log('已完成任务数量:', response.data?.length || 0)
     
     if (response && response.data) {
       completedList.value = response.data || []
-      console.log('设置已完成任务列表后的数量:', completedList.value.length)
     } else {
       console.warn('已完成任务接口返回数据为空或格式不正确:', response)
       completedList.value = []
@@ -202,7 +192,6 @@ function loadCompletedList() {
 
 /** Tab切换 */
 function handleTabClick(tab) {
-  console.log('Tab切换到:', tab.props.name)
   if (tab.props.name === 'todo') {
     loadTodoList()
   } else if (tab.props.name === 'candidate') {
@@ -275,17 +264,12 @@ function handleView(row) {
 
 // 初始化加载当前激活tab的数据，默认是待办任务
 onMounted(() => {
-  console.log('CheckinList 组件已挂载')
-  console.log('初始激活的tab:', activeTab.value)
   // 根据当前激活的tab加载对应数据，默认是待办任务
   if (activeTab.value === 'todo') {
-    console.log('加载待办任务...')
     loadTodoList()
   } else if (activeTab.value === 'candidate') {
-    console.log('加载候选任务...')
     loadCandidateList()
   } else if (activeTab.value === 'completed') {
-    console.log('加载已完成任务...')
     loadCompletedList()
   }
 })

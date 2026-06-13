@@ -20,6 +20,14 @@ public interface ContractMapper
     public Contract selectContractById(Long id);
 
     /**
+     * 通过老人ID查询合同
+     *
+     * @param elderId 老人ID
+     * @return 合同
+     */
+    public Contract selectContractByElderId(Long elderId);
+
+    /**
      * 查询合同列表
      * 
      * @param contract 合同
