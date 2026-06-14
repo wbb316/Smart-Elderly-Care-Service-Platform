@@ -1,4 +1,4 @@
-const { request } = require('../../../utils/request');
+const { request, hasToken } = require('../../../utils/request');
 Page({
   data: {
     detail: {},
@@ -8,6 +8,7 @@ Page({
   },
 
   onLoad(options) {
+    if (!hasToken()) { wx.reLaunch({ url: '/pages/index/index' }); return; }
     this.setData({
       detail: {
         id: options.roomTypeId,

@@ -1,5 +1,5 @@
 const app = getApp()
-const { request } = require('../../utils/request');
+const { request, hasToken } = require('../../utils/request');
 Page({
   data: {
     serviceList: [],
@@ -18,13 +18,17 @@ Page({
   },
 
   onLoad(options) {
+    if (!hasToken()) return wx.reLaunch({ url: '/pages/index/index' });
     this.getServiceList()
     this.getFamilyList()
     this.setData({ nowDate: new Date().toISOString().slice(0, 10) })
   },
 
   onShow() {
-    // tab页每次切换过来时刷新数据
+    if (!hasToken()) {
+      wx.reLaunch({ url: '/pages/index/index' });
+      return;
+    }
     if (this.data.originalList.length === 0) {
       this.getServiceList()
       this.getFamilyList()

@@ -29,13 +29,13 @@ public class LoginConstant {
     private static final CloseableHttpClient HTTP_CLIENT = HttpClients.createDefault();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // WeChat credentials from environment variables (do NOT hardcode)
+    // 生产环境通过环境变量 WX_APPID / WX_SECRET 覆盖
     public static final String LOGIN_APPID = System.getenv().getOrDefault("WX_APPID", "wx1434f799e4063dcf");
-    public static final String LOGIN_SECRET = System.getenv().getOrDefault("WX_SECRET", "");
+    public static final String LOGIN_SECRET = System.getenv().getOrDefault("WX_SECRET", "3419c99bf13e855bf68ac64633b2ef2f");
     public static final String LOGIN_GRANT_TYPE = "authorization_code";
     public static final String LOGIN_URL = "https://api.weixin.qq.com/sns/jscode2session?appid=" + LOGIN_APPID + "&secret=" + LOGIN_SECRET + "&js_code=";
     public static final String LOGIN_PHONE_URL ="https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token=";
-    private static final String TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" + LOGIN_APPID + "&secret=" + LOGIN_SECRET;
+    private static final String TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&";
 
     public String getOpenIdURL(String code){
         return LOGIN_URL + code + "&grant_type=" + LOGIN_GRANT_TYPE;
@@ -77,11 +77,16 @@ public class LoginConstant {
     }
 
     public String getAccessToken(String tokenURL){
-
         String result = HttpUtils.sendGet(tokenURL);
         JSONObject jsonObject = JSONObject.parseObject(result);
-        String access_token = jsonObject.get("access_token").toString();
-        return access_token;
+        if (jsonObject.containsKey("errcode") && jsonObject.getInteger("errcode") != 0) {
+            throw new BaseException("获取 access_token 失败：" + jsonObject.getString("errmsg"));
+        }
+        Object token = jsonObject.get("access_token");
+        if (token == null) {
+            throw new BaseException("获取 access_token 失败：返回数据中无 access_token 字段");
+        }
+        return token.toString();
     }
 
     public String getPhone(String phoneUrl,String phoneCode){

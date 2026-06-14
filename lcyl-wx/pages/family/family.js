@@ -1,33 +1,26 @@
-const app =getApp();
-const { request } = require('../../utils/request');
+const app = getApp();
+const { request, hasToken } = require('../../utils/request');
 Page({
   data: {
-    familyList: [
-
-    ],
-    showFamilyModal: false, // 控制弹窗显隐
-    inputFamilyName: ''     // 弹窗输入内容
+    familyList: [],
+    showFamilyModal: false,
+    inputFamilyName: ''
   },
 
-  // 解绑操作
   handleUnbind(e) {
+    if (!hasToken()) return wx.reLaunch({ url: '/pages/index/index' });
     const id = e.currentTarget.dataset.id;
     wx.showModal({
       title: "提示",
       content: "确定要解绑该家人吗？",
       success: (res) => {
         if (res.confirm) {
-          // 执行解绑逻辑，如更新数据
          request({
           url: `/wxLogin/deleteElder/${id}`,
           method:'DELETE'
          }).then((res) =>{
             if(res.data.code == 200){
-              wx.showToast({
-                title: '解绑成功',
-                icon: 'success',
-                duration: 2000
-              });
+              wx.showToast({ title: '解绑成功', icon: 'success', duration: 2000 });
               this.getElderList();
             }
           })
@@ -36,26 +29,17 @@ Page({
     });
   },
 
-  // 跳转我的账单
   goToBill(e) {
     const id = e.currentTarget.dataset.id;
-    wx.navigateTo({
-      url: `/family/pages/mybill/mybill?id=${id}`
-    });
+    wx.navigateTo({ url: `/family/pages/mybill/mybill?id=${id}` });
   },
 
-  // 跳转请假列表
   goToLeave(e) {
-    wx.navigateTo({
-      url: `/family/pages/leave/list/list`
-    });
+    wx.navigateTo({ url: `/family/pages/leave/list/list` });
   },
 
-  // 跳转绑定家人
   goToBind() {
-    wx.navigateTo({
-      url: "/family/pages/addfamily/addfamily"
-    });
+    wx.navigateTo({ url: "/family/pages/addfamily/addfamily" });
   },
 
   getElderList() {
@@ -64,17 +48,16 @@ Page({
       method: "POST"
     }).then((resp) => {
       if (resp.data.code == 200) {
-        this.setData({
-          familyList: resp.data.data
-        })
+        this.setData({ familyList: resp.data.data })
       }
-    })
+    }).catch(() => {})
   },
 
-  onLoad(options) {
-    this.getElderList()
-  },
   onShow() {
-    this.getElderList()
+    if (!hasToken()) {
+      wx.reLaunch({ url: '/pages/index/index' });
+      return;
+    }
+    this.getElderList();
   },
 });
