@@ -10,8 +10,8 @@ App({
     const token = wx.getStorageSync('token')
     if (token) {
       this.globalData.token = token
+      this.globalData.isLoggedIn = true
     }
-    // 不自动跳转，首页无需登录也能看
   },
 
   /**

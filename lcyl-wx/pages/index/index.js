@@ -68,10 +68,10 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
-    // 检查是否有缓存的 token，有则直接跳转首页
     const token = wx.getStorageSync('token')
     if (token) {
       app.globalData.token = token
+      app.globalData.isLoggedIn = true
       wx.switchTab({ url: '/pages/home/home' })
     }
   },
