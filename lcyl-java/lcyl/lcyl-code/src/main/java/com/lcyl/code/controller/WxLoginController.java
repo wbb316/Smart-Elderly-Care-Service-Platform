@@ -32,6 +32,7 @@ import com.lcyl.system.service.BedService;
 import com.lcyl.system.service.IContractService;
 import com.lcyl.system.service.IElderService;
 import com.lcyl.system.service.ILcRoomTypeService;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -82,8 +83,16 @@ public class WxLoginController extends BaseController {
 
     @PostMapping("/phoneLogin")
     public AjaxResult wxLogin(@RequestBody UserLoginRequestDto userLoginRequestDto){
-
         return success(wxLoginService.getAccessToken(userLoginRequestDto));
+    }
+
+    /**
+     * 刷新令牌有效期（每次页面切换时调用，延长 Redis 会话过期时间）
+     */
+    @GetMapping("/refreshToken")
+    public AjaxResult refreshToken(HttpServletRequest request){
+        wxLoginService.refreshToken(request);
+        return success("ok");
     }
 
     @PostMapping("/addvisitor")

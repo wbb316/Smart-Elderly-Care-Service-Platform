@@ -33,6 +33,7 @@ Page({
             const resultData = res.data.data || {};
             app.globalData.token = resultData.token;
             app.globalData.userName = resultData.name;
+            app.globalData.isLoggedIn = true;
             wx.setStorageSync('token', resultData.token);
 
             wx.showToast({

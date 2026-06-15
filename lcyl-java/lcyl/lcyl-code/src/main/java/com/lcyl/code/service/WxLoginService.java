@@ -31,6 +31,8 @@ public interface WxLoginService {
 
     LoginVo getAccessToken(UserLoginRequestDto userLoginRequestDto);
 
+    void refreshToken(javax.servlet.http.HttpServletRequest request);
+
 
     void updateMemberProfile(MemberProfileUpdateDto dto);
 

@@ -1,4 +1,4 @@
-const { request } = require('../../utils/request');
+const { request, hasToken, refreshSession } = require('../../utils/request');
 const app = getApp()
 Page({
 
@@ -20,6 +20,7 @@ Page({
 
   logout() {
     app.globalData.token = ''
+    app.globalData.isLoggedIn = false
     wx.removeStorageSync('token')
     wx.reLaunch({
       url: "/pages/index/index"
@@ -54,14 +55,11 @@ Page({
   },
 
   onShow() {
-    if (!app.globalData.token) {
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none'
-      })
-      wx.navigateTo({ url: '/pages/index/index' })
-      return
+    if (!hasToken()) {
+      wx.reLaunch({ url: '/pages/index/index' });
+      return;
     }
-    this.loadUserInfo()
+    refreshSession();
+    this.loadUserInfo();
   }
 })

@@ -20,7 +20,7 @@ function buildUrl(path) {
  * 判断当前是否有有效 token
  */
 function hasToken() {
-  return !!(app.globalData.token || wx.getStorageSync("token"));
+  return !!(app.globalData.isLoggedIn && app.globalData.token);
 }
 
 /**
@@ -74,8 +74,23 @@ function isTokenExpired(res) {
  */
 function handleTokenExpired() {
   app.globalData.token = "";
+  app.globalData.isLoggedIn = false;
   wx.removeStorageSync("token");
   wx.reLaunch({ url: "/pages/index/index" });
 }
 
-module.exports = { request, buildUrl, getBaseUrl, hasToken, isTokenExpired };
+/**
+ * 每次页面切换时调用，刷新后端令牌有效期（滑动过期）
+ */
+function refreshSession() {
+  if (!hasToken()) return;
+  wx.request({
+    url: buildUrl('/wxLogin/refreshToken'),
+    method: 'GET',
+    header: { 'Authorization': app.globalData.token },
+    success: () => {},
+    fail: () => {}
+  });
+}
+
+module.exports = { request, buildUrl, getBaseUrl, hasToken, isTokenExpired, refreshSession };

@@ -144,6 +144,16 @@ public class WxLoginServiceImpl implements WxLoginService
         return new LoginVo(member.getName(), token);
     }
 
+    /**
+     * 每次页面切换时刷新令牌的 Redis 过期时间，实现滑动过期
+     */
+    @Override
+    public void refreshToken(javax.servlet.http.HttpServletRequest request) {
+        com.lcyl.common.core.domain.model.LoginUser loginUser = tokenService.getLoginUser(request);
+        if (loginUser != null) {
+            tokenService.refreshToken(loginUser);
+        }
+    }
 
     /**
      * 更新用户资料信息

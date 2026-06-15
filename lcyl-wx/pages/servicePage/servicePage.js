@@ -1,5 +1,5 @@
 const app = getApp()
-const { request, hasToken } = require('../../utils/request');
+const { request, hasToken, refreshSession } = require('../../utils/request');
 Page({
   data: {
     serviceList: [],
@@ -29,6 +29,7 @@ Page({
       wx.reLaunch({ url: '/pages/index/index' });
       return;
     }
+    refreshSession();
     if (this.data.originalList.length === 0) {
       this.getServiceList()
       this.getFamilyList()

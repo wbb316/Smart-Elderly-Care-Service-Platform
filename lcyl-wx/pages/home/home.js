@@ -1,5 +1,5 @@
 // pages/home/home.js
-const { request } = require('../../utils/request');
+const { request, refreshSession } = require('../../utils/request');
 const app = getApp();
 Page({
 
@@ -42,6 +42,7 @@ Page({
   onReady() { },
 
   onShow() {
+    refreshSession();
     this.getBedType();
   },
 

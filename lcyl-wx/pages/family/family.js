@@ -1,5 +1,5 @@
 const app = getApp();
-const { request, hasToken } = require('../../utils/request');
+const { request, hasToken, refreshSession } = require('../../utils/request');
 Page({
   data: {
     familyList: [],
@@ -58,6 +58,7 @@ Page({
       wx.reLaunch({ url: '/pages/index/index' });
       return;
     }
+    refreshSession();
     this.getElderList();
   },
 });

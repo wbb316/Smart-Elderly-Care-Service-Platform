@@ -1,21 +1,17 @@
 // app.js
 App({
   globalData: {
-    // API 基础地址，部署时修改此处即可
     baseUrl: 'http://localhost:8080',
     token: '',
-    userName: null
+    userName: null,
+    isLoggedIn: false  // 只有当前会话登录成功后才是 true
   },
-  /**
-   * 当小程序初始化完成时，会触发 onLaunch（全局只触发一次）
-   */
   onLaunch: function () {
     const token = wx.getStorageSync('token')
     if (token) {
       this.globalData.token = token
-    } else {
-      wx.reLaunch({ url: '/pages/index/index' })
     }
+    // 不自动跳转，首页无需登录也能看
   },
 
   /**
