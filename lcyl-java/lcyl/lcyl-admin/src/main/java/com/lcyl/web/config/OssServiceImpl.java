@@ -34,8 +34,6 @@ public class OssServiceImpl implements OssService {
         // 如果需要上传时设置存储类型和访问权限，请参考以下示例代码。
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName,
                 key, in);
-        ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setObjectAcl( CannedAccessControlList.PublicRead);
         ossClient.putObject(putObjectRequest);
         //返回文件上传成功后的访问路径 https://bucketName+"."+endpoint+"/"+key
         String uploadUrl = "https://" + bucketName + "." + endpoint + "/" + key;
