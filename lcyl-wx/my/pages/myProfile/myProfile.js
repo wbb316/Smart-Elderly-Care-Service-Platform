@@ -117,7 +117,7 @@ Page({
     })
 
     wx.uploadFile({
-      url: buildUrl('/upload/image'),
+      url: buildUrl('/upload'),
       filePath: filePath,
       name: 'file',
       success: (uploadRes) => {
