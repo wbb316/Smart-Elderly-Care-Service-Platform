@@ -1,5 +1,5 @@
 const app = getApp()
-const { request, getBaseUrl } = require('../../../utils/request');
+const { request, buildUrl } = require('../../../utils/request');
 Page({
   data: {
     statusBarHeight: 20,
@@ -117,7 +117,7 @@ Page({
     })
 
     wx.uploadFile({
-      url: getBaseUrl() + '/upload/image',
+      url: buildUrl('/upload/image'),
       filePath: filePath,
       name: 'file',
       success: (uploadRes) => {
