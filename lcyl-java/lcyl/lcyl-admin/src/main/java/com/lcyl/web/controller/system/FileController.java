@@ -19,13 +19,14 @@ public class FileController {
 
     @Autowired
     private OssService ossService;
+    private static final String[] ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"};
+
     // 生成新的文件名
     private String createNewFileName(MultipartFile file) {
         String originalFilename = file.getOriginalFilename();
-        String suffix =
-                originalFilename.substring(originalFilename.lastIndexOf('.'));
-        String fileName =  UUID.randomUUID()+suffix;
-        return fileName;
+        int dotIndex = originalFilename != null ? originalFilename.lastIndexOf('.') : -1;
+        String suffix = dotIndex >= 0 ? originalFilename.substring(dotIndex) : ".jpg";
+        return UUID.randomUUID() + suffix;
     }
     /**
      * 图片上传
@@ -36,12 +37,30 @@ public class FileController {
             if (file.isEmpty()) {
                 return Result.error("请选择文件！");
             }
-            InputStream in = file.getInputStream();
+            String originalFilename = file.getOriginalFilename();
+            if (originalFilename == null || originalFilename.trim().isEmpty()) {
+                return Result.error("文件名不能为空");
+            }
+            // 白名单校验：仅允许图片格式（取最后一个点后的扩展名，防止 a.exe.jpg 绕过）
+            String lowerName = originalFilename.toLowerCase();
+            int dotIndex = lowerName.lastIndexOf('.');
+            String fileExt = dotIndex >= 0 ? lowerName.substring(dotIndex) : "";
+            boolean allowed = false;
+            for (String ext : ALLOWED_IMAGE_EXTENSIONS) {
+                if (fileExt.equals(ext)) {
+                    allowed = true;
+                    break;
+                }
+            }
+            if (!allowed) {
+                return Result.error("仅支持上传图片格式文件（jpg, jpeg, png, gif, bmp, webp）");
+            }
             String newFileName = createNewFileName(file);
-            String uploadUrl = ossService.upload(in, newFileName);
-            Result r = Result.success(uploadUrl);
-            // debug output removed
-            return r;
+            String uploadUrl;
+            try (InputStream in = file.getInputStream()) {
+                uploadUrl = ossService.upload(in, newFileName);
+            }
+            return Result.success(uploadUrl);
         }catch (Exception e) {
             log.error("文件上传失败", e);
             return Result.error("上传文件失败");
@@ -86,8 +105,10 @@ public class FileController {
                 return Result.error("仅支持上传PDF格式文件");
             }
 
-            InputStream in = file.getInputStream();
-            String uploadUrl = ossService.uploadContractPdf(in, originalFilename);
+            String uploadUrl;
+            try (InputStream in = file.getInputStream()) {
+                uploadUrl = ossService.uploadContractPdf(in, originalFilename);
+            }
             return Result.success(uploadUrl);
         } catch (Exception e) {
             log.error("文件上传失败", e);

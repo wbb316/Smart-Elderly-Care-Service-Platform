@@ -104,8 +104,8 @@ token:
   header: Authorization
   # 令牌密钥
   secret: K9x2M7pQ4vR8wY1aC5eH3jN6bT0mL4sX9zA2dF7gJ1kP5oU3rW6yB8cV0nQ4xZ
-  # 令牌有效期（默认30分钟）
-  expireTime: 30000
+  # 令牌有效期（默认120分钟）
+  expireTime: 120
 
 # MyBatis配置
 mybatis:
@@ -151,8 +151,8 @@ xss:
 aliyun:
   oss:
     endpoint: oss-cn-hangzhou.aliyuncs.com # oss对外服务的访问域名
-    accessKeyId: your-access-key-id     # 访问身份验证中用到用户标识
-    accessKeySecret: your-access-key-secret # 用户用于加密签名字符串和oss用来验证签名字符串的密钥
+    accessKeyId: ${OSS_KEY}     # 访问身份验证中用到用户标识
+    accessKeySecret: ${OSS_SECRET} # 用户用于加密签名字符串和oss用来验证签名字符串的密钥
     bucketName: sfzy-0000  #oss的存储空间
     dir:
       prefix: lcyl/images/ # 上传文件夹路径前缀
