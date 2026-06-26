@@ -784,7 +784,7 @@ const handleCancel = () => {
     type: 'warning'
   }).then(() => {
     router.back()
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 
 // 加载任务数据

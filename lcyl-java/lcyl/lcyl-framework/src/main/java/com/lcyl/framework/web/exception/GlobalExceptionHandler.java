@@ -1,6 +1,7 @@
 package com.lcyl.framework.web.exception;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
@@ -18,6 +19,7 @@ import com.lcyl.common.exception.DemoModeException;
 import com.lcyl.common.exception.ServiceException;
 import com.lcyl.common.utils.StringUtils;
 import com.lcyl.common.utils.html.EscapeUtil;
+import io.jsonwebtoken.ExpiredJwtException;
 
 /**
  * 全局异常处理器
@@ -38,6 +40,16 @@ public class GlobalExceptionHandler
         String requestURI = request.getRequestURI();
         log.error("请求地址'{}',权限校验失败'{}'", requestURI, e.getMessage());
         return AjaxResult.error(HttpStatus.FORBIDDEN, "没有权限，请联系管理员授权");
+    }
+
+    /**
+     * JWT令牌过期
+     */
+    @ExceptionHandler(ExpiredJwtException.class)
+    public AjaxResult handleExpiredJwtException(ExpiredJwtException e, HttpServletResponse response)
+    {
+        response.setStatus(HttpStatus.UNAUTHORIZED);
+        return AjaxResult.error(HttpStatus.UNAUTHORIZED, "登录已过期，请重新登录");
     }
 
     /**
@@ -98,7 +110,7 @@ public class GlobalExceptionHandler
     {
         String requestURI = request.getRequestURI();
         log.error("请求地址'{}',发生未知异常.", requestURI, e);
-        return AjaxResult.error(e.getMessage());
+        return AjaxResult.error("服务器内部错误，请联系管理员");
     }
 
     /**
@@ -109,7 +121,7 @@ public class GlobalExceptionHandler
     {
         String requestURI = request.getRequestURI();
         log.error("请求地址'{}',发生系统异常.", requestURI, e);
-        return AjaxResult.error(e.getMessage());
+        return AjaxResult.error("服务器内部错误，请联系管理员");
     }
 
     /**
@@ -119,7 +131,7 @@ public class GlobalExceptionHandler
     public AjaxResult handleBindException(BindException e)
     {
         log.error(e.getMessage(), e);
-        String message = e.getAllErrors().get(0).getDefaultMessage();
+        String message = e.getAllErrors().isEmpty() ? "请求参数校验失败" : e.getAllErrors().get(0).getDefaultMessage();
         return AjaxResult.error(message);
     }
 
@@ -130,7 +142,9 @@ public class GlobalExceptionHandler
     public Object handleMethodArgumentNotValidException(MethodArgumentNotValidException e)
     {
         log.error(e.getMessage(), e);
-        String message = e.getBindingResult().getFieldError().getDefaultMessage();
+        String message = e.getBindingResult().getFieldError() != null
+                ? e.getBindingResult().getFieldError().getDefaultMessage()
+                : "请求参数校验失败";
         return AjaxResult.error(message);
     }
 

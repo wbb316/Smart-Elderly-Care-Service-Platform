@@ -320,7 +320,7 @@ function handleRefund(row: ServiceOrder) {
       proxy.$modal.msgSuccess("退款申请提交成功")
       getList()
     })
-    .catch(() => {})
+    .catch((e) => { console.error(e) })
 }
 
 function handleGenerateExpenseBill(row: ServiceOrder) {
@@ -332,7 +332,7 @@ function handleGenerateExpenseBill(row: ServiceOrder) {
     .then(() => {
       proxy.$modal.msgSuccess("费用账单生成成功")
     })
-    .catch(() => {})
+    .catch((e) => { console.error(e) })
 }
 
 function handleExport() {

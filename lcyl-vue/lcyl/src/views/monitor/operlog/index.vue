@@ -287,7 +287,7 @@ function handleDelete(row?: SysOperLog) {
   }).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 
 /** 清空按钮操作 */
@@ -297,7 +297,7 @@ function handleClean() {
   }).then(() => {
     getList()
     proxy.$modal.msgSuccess("清空成功")
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 
 /** 导出按钮操作 */

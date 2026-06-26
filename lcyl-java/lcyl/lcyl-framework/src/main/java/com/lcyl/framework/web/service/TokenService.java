@@ -25,6 +25,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 
 /**
  * token验证处理
@@ -77,9 +78,21 @@ public class TokenService
                 LoginUser user = redisCache.getCacheObject(userKey);
                 return user;
             }
+            catch (io.jsonwebtoken.ExpiredJwtException e)
+            {
+                log.warn("JWT令牌已过期");
+            }
+            catch (io.jsonwebtoken.security.SecurityException e)
+            {
+                log.error("JWT签名验证失败", e);
+            }
+            catch (io.jsonwebtoken.MalformedJwtException e)
+            {
+                log.error("JWT令牌格式异常", e);
+            }
             catch (Exception e)
             {
-                log.error("获取用户信息异常'{}'", e.getMessage());
+                log.error("获取用户信息异常", e);
             }
         }
         return null;
@@ -150,6 +163,9 @@ public class TokenService
      */
     public void refreshToken(LoginUser loginUser)
     {
+        if (loginUser == null) {
+            return;
+        }
         loginUser.setLoginTime(System.currentTimeMillis());
         loginUser.setExpireTime(loginUser.getLoginTime() + expireTime * MILLIS_MINUTE);
         // 根据uuid将loginUser缓存
@@ -164,7 +180,11 @@ public class TokenService
      */
     public void setUserAgent(LoginUser loginUser)
     {
-        String userAgent = ServletUtils.getRequest().getHeader("User-Agent");
+        javax.servlet.http.HttpServletRequest request = ServletUtils.getRequest();
+        if (request == null) {
+            return;
+        }
+        String userAgent = request.getHeader("User-Agent");
         String ip = IpUtils.getIpAddr();
         loginUser.setIpaddr(ip);
         loginUser.setLoginLocation(AddressUtils.getRealAddressByIP(ip));
@@ -179,16 +199,25 @@ public class TokenService
      * @param expireMinutes 过期时间（分钟）
      * @return 令牌
      */
+    /** 使用 SHA-256 从任意长度的 secret 派生 256 位密钥，兼容 jjwt 0.12.x */
+    private SecretKey deriveKey() {
+        try {
+            byte[] hash = MessageDigest.getInstance("SHA-256").digest(secret.getBytes(StandardCharsets.UTF_8));
+            return Keys.hmacShaKeyFor(hash);
+        } catch (Exception e) {
+            throw new RuntimeException("密钥派生失败", e);
+        }
+    }
+
     public String createToken(Map<String, Object> claims, int expireMinutes)
     {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + expireMinutes * 60 * 1000L);
-        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         String token = Jwts.builder()
                 .claims(claims)
                 .issuedAt(now)
                 .expiration(expiration)
-                .signWith(key)
+                .signWith(deriveKey())
                 .compact();
         return token;
     }
@@ -201,9 +230,8 @@ public class TokenService
      */
     public Claims parseToken(String token)
     {
-        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         return Jwts.parser()
-                .verifyWith(key)
+                .verifyWith(deriveKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();

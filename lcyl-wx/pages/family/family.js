@@ -1,5 +1,5 @@
 const app = getApp();
-const { request, hasToken, refreshSession } = require('../../utils/request');
+const { request, verifyToken, refreshSession } = require('../../utils/request');
 Page({
   data: {
     familyList: [],
@@ -8,7 +8,7 @@ Page({
   },
 
   handleUnbind(e) {
-    if (!hasToken()) return wx.reLaunch({ url: '/pages/index/index' });
+    verifyToken().then(() => {
     const id = e.currentTarget.dataset.id;
     wx.showModal({
       title: "提示",
@@ -27,6 +27,7 @@ Page({
         }
       }
     });
+    }).catch(() => {});
   },
 
   goToBill(e) {
@@ -42,6 +43,15 @@ Page({
     wx.navigateTo({ url: "/family/pages/addfamily/addfamily" });
   },
 
+  goToHealth(e) {
+    const id = e.currentTarget.dataset.id;
+    wx.navigateTo({ url: `/family/pages/healthData/healthData?elderId=${id}` });
+  },
+
+  goToRegisterElder() {
+    wx.navigateTo({ url: "/home/pages/registerElder/registerElder" });
+  },
+
   getElderList() {
     request({
       url: '/wxLogin/getElderBedList',
@@ -54,11 +64,9 @@ Page({
   },
 
   onShow() {
-    if (!hasToken()) {
-      wx.reLaunch({ url: '/pages/index/index' });
-      return;
-    }
+    verifyToken().then(() => {
     refreshSession();
     this.getElderList();
+    }).catch(() => {});
   },
 });

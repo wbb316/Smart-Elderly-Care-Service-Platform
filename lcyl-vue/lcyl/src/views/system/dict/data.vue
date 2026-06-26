@@ -353,7 +353,7 @@ function handleDelete(row?: SysDictData) {
     getList()
     proxy.$modal.msgSuccess("删除成功")
     useDictStore().removeDict(queryParams.value.dictType!)
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 
 /** 导出按钮操作 */

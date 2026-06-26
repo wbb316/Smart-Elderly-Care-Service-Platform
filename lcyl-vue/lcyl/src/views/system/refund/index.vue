@@ -483,7 +483,7 @@ function handleDelete(row: LcServiceOrderRefund) {
   }).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 
 /** 导出按钮操作 */
@@ -519,7 +519,7 @@ function handleRefundSuccess(row: LcServiceOrderRefund) {
         proxy.$modal.msgSuccess("操作成功")
         getList()
       })
-      .catch(() => {})
+      .catch((e) => { console.error(e) })
 }
 
 /** 打开退款失败弹窗 */

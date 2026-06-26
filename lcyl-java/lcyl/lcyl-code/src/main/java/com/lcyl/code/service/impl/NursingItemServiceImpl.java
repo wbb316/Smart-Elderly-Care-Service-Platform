@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.lcyl.code.domain.Nurse;
 import com.lcyl.code.utils.NurseUtils;
+import com.lcyl.common.exception.ServiceException;
 import com.lcyl.common.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,9 @@ public class NursingItemServiceImpl implements INursingItemService
 {
     @Autowired
     private NursingItemMapper nursingItemMapper;
+
+    @Autowired
+    private NurseUtils nurseUtils;
 
     /**
      * 查询护理项目
@@ -57,7 +61,10 @@ public class NursingItemServiceImpl implements INursingItemService
     public int insertNursingItem(NursingItem nursingItem)
     {
         // 1. 获取当前登录的护理员
-        Nurse currentNurse = NurseUtils.getCurrentNurse();
+        Nurse currentNurse = nurseUtils.getCurrentNurse();
+        if (currentNurse == null) {
+            throw new ServiceException("未获取到当前护理员信息");
+        }
 
         // 2. 自动填充创建人ID和姓名
         nursingItem.setCreatorId(currentNurse.getId());
@@ -75,8 +82,7 @@ public class NursingItemServiceImpl implements INursingItemService
     @Override
     public int updateNursingItem(NursingItem nursingItem)
     {
-        nursingItem.setCreatorId(null);
-        nursingItem.setCreatorName(null);
+
         nursingItem.setUpdateTime(DateUtils.getNowDate());
         return nursingItemMapper.updateNursingItem(nursingItem);
     }

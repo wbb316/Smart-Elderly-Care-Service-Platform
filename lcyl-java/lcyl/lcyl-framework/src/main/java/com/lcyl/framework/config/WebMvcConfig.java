@@ -22,6 +22,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
             "/v2/api-docs",
 // 登录接口
             "/wxLogin/phoneLogin",
+// refreshToken 允许携带过期 token
+            "/wxLogin/refreshToken",
 // 无需登录即可访问
             "/wxLogin/getRoomType",
             "/wxLogin/roomType/*"

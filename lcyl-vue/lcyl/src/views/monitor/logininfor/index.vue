@@ -200,7 +200,7 @@ function handleDelete(row?: SysLogininfor) {
   }).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 
 /** 清空按钮操作 */
@@ -210,7 +210,7 @@ function handleClean() {
   }).then(() => {
     getList()
     proxy.$modal.msgSuccess("清空成功")
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 
 /** 解锁按钮操作 */
@@ -220,7 +220,7 @@ function handleUnlock() {
     return unlockLogininfor(username)
   }).then(() => {
     proxy.$modal.msgSuccess("用户" + username + "解锁成功")
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 
 /** 导出按钮操作 */

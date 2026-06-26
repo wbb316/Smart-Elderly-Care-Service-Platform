@@ -526,6 +526,7 @@ public class SysUserServiceImpl implements ISysUserService
      * @return 结果
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public String importUser(List<SysUser> userList, Boolean isUpdateSupport, String operName)
     {
         if (StringUtils.isNull(userList) || userList.size() == 0)
@@ -553,7 +554,7 @@ public class SysUserServiceImpl implements ISysUserService
                     successNum++;
                     successMsg.append("<br/>" + successNum + "、账号 " + user.getUserName() + " 导入成功");
                 }
-                else if (isUpdateSupport)
+                else if (Boolean.TRUE.equals(isUpdateSupport))
                 {
                     BeanValidators.validateWithException(validator, user);
                     checkUserAllowed(u);

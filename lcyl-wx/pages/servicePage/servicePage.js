@@ -1,5 +1,5 @@
 const app = getApp()
-const { request, hasToken, refreshSession } = require('../../utils/request');
+const { request, verifyToken, refreshSession } = require('../../utils/request');
 Page({
   data: {
     serviceList: [],
@@ -18,22 +18,21 @@ Page({
   },
 
   onLoad(options) {
-    if (!hasToken()) return wx.reLaunch({ url: '/pages/index/index' });
+    verifyToken().then(() => {
     this.getServiceList()
     this.getFamilyList()
     this.setData({ nowDate: new Date().toISOString().slice(0, 10) })
+    }).catch(() => {});
   },
 
   onShow() {
-    if (!hasToken()) {
-      wx.reLaunch({ url: '/pages/index/index' });
-      return;
-    }
+    verifyToken().then(() => {
     refreshSession();
     if (this.data.originalList.length === 0) {
       this.getServiceList()
       this.getFamilyList()
     }
+    }).catch(() => {});
   },
 
   onSearchInput(e) {

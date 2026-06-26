@@ -374,7 +374,7 @@ const submitSign = () => {
       console.error('签约办理提交失败:', error)
       ElMessage.error(error?.message || '签约办理提交失败')
     }
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 
 const goBack = () => {

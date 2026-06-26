@@ -29,9 +29,8 @@ public class LoginConstant {
     private static final CloseableHttpClient HTTP_CLIENT = HttpClients.createDefault();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // 生产环境通过环境变量 WX_APPID / WX_SECRET 覆盖
-    public static final String LOGIN_APPID = System.getenv().getOrDefault("WX_APPID", "wx1434f799e4063dcf");
-    public static final String LOGIN_SECRET = System.getenv().getOrDefault("WX_SECRET", "3419c99bf13e855bf68ac64633b2ef2f");
+    public static final String LOGIN_APPID = System.getenv("WX_APPID");
+    public static final String LOGIN_SECRET = System.getenv("WX_SECRET");
     public static final String LOGIN_GRANT_TYPE = "authorization_code";
     public static final String LOGIN_URL = "https://api.weixin.qq.com/sns/jscode2session?appid=" + LOGIN_APPID + "&secret=" + LOGIN_SECRET + "&js_code=";
     public static final String LOGIN_PHONE_URL ="https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token=";
@@ -95,11 +94,16 @@ public class LoginConstant {
 
         String result = HttpUtils.sendPost(phoneUrl, JSONObject.toJSONString(param));
         JSONObject jsonObject = JSONObject.parseObject(result);
-        //如果code不正确，则失败
-        if (jsonObject.getInteger("errcode") != 0) {
+        // 如果code不正确，则失败
+        Integer errcode = jsonObject.getInteger("errcode");
+        if (errcode != null && errcode != 0) {
             throw new BaseException("获取手机号失败：" + jsonObject.getString("errmsg"));
         }
-        return jsonObject.getJSONObject("phone_info").getString("purePhoneNumber");
+        JSONObject phoneInfo = jsonObject.getJSONObject("phone_info");
+        if (phoneInfo == null) {
+            throw new BaseException("获取手机号失败：响应中无 phone_info 字段");
+        }
+        return phoneInfo.getString("purePhoneNumber");
     }
 
 }

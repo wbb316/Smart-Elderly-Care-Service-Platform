@@ -197,7 +197,7 @@ public class BedServiceImpl implements BedService {
         // 1. 先判断床位号是否重复
         Bed existBed = bedMapper.selectBedNumber(bed.getBedNumber());
         // 如果查到重复，并且 不是当前这条数据 → 拒绝更新
-        if (existBed != null && !existBed.getId().equals(bed.getId())) {
+        if (existBed != null && !java.util.Objects.equals(existBed.getId(), bed.getId())) {
             throw new RuntimeException("床位号【" + bed.getBedNumber() + "】已存在，不能重复！");
         }
         // 2. 根据姓名查询老人
@@ -207,8 +207,11 @@ public class BedServiceImpl implements BedService {
         if (elders == null || elders.isEmpty()) {
             return 0;
         }
-        // 2. 更新老人的 bed_id（把老人绑定到该床位）
-        elderMapper.updateBedId(bed.getId(), name);
+        if (elders.size() > 1) {
+            throw new RuntimeException("姓名【" + name + "】匹配到多个老人，请使用精确查询");
+        }
+        // 2. 更新老人的 bed_id（把老人绑定到该床位，使用老人ID精确匹配）
+        elderMapper.updateBedId(bed.getId(), elders.get(0).getId());
 
         // 3. 更新床位信息
         return bedMapper.updateBed1(bed);

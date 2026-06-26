@@ -161,7 +161,7 @@ function cancelAuthUser(row: SysUser) {
   }).then(() => {
     getList()
     proxy.$modal.msgSuccess("取消授权成功")
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 
 /** 批量取消授权按钮操作 */
@@ -173,7 +173,7 @@ function cancelAuthUserAll() {
   }).then(() => {
     getList()
     proxy.$modal.msgSuccess("取消授权成功")
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 
 getList()

@@ -7,11 +7,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.lcyl.code.domain.CheckIn;
 import com.lcyl.code.domain.CheckInConfigg;
+import com.lcyl.code.domain.ElderRegistration;
 import com.lcyl.code.mapper.AssignNurseMapper;
+import org.springframework.transaction.support.TransactionTemplate;
 import com.lcyl.code.mapper.CheckInConfiggMapper;
 import com.lcyl.code.mapper.CheckInMapper;
+import com.lcyl.code.service.IElderRegistrationService;
 import com.lcyl.common.exception.ServiceException;
 import com.lcyl.system.domain.Contract;
+import com.lcyl.system.domain.dto.AddInfo;
 import com.lcyl.system.mapper.ContractMapper;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +48,12 @@ public class ElderController extends BaseController
 {
     @Autowired
     private IElderService elderService;
+
+    @Autowired
+    private IElderRegistrationService elderRegistrationService;
+
+    @Autowired
+    private TransactionTemplate transactionTemplate;
 
     /**
      * 查询老人列表
@@ -116,6 +126,7 @@ public class ElderController extends BaseController
     /**
      * 获取所有老人列表（不分页）
      */
+    @PreAuthorize("@ss.hasPermi('system:elder:query')")
     @GetMapping("/getElderList")
     public AjaxResult getElderList() {
         List<Elder> elderList = elderService.selectAllElder();
@@ -134,6 +145,7 @@ public class ElderController extends BaseController
     /**
      * 获取老人完整信息
      */
+    @PreAuthorize("@ss.hasPermi('system:elder:query')")
     @GetMapping("/fullInfo/{id}")
     public AjaxResult getElderFullInfo(@PathVariable Long id) {
         Elder elder = elderService.selectElderById(id);
@@ -153,10 +165,77 @@ public class ElderController extends BaseController
 
         Map<String, Object> result = new HashMap<>();
         result.put("bedNo", checkInConfig.getBedNo());
-        result.put("contract", contract.getContractNo());
-        result.put("counselor", checkIn.getCounselor());
+        result.put("contract", contract != null ? contract.getContractNo() : null);
+        result.put("counselor", checkIn != null ? checkIn.getCounselor() : null);
         result.put("nursingLevel", string);
         result.put("nurseNames", assignNurse);
         return success(result);
+    }
+
+    /**
+     * 查询待审核的老人注册列表
+     */
+    @PreAuthorize("@ss.hasPermi('system:elder:list')")
+    @GetMapping("/pendingRegistrations")
+    public TableDataInfo pendingRegistrations(ElderRegistration elderRegistration) {
+        startPage();
+        if (elderRegistration.getStatus() == null) {
+            elderRegistration.setStatus("1");
+        }
+        List<ElderRegistration> list = elderRegistrationService.selectElderRegistrationList(elderRegistration);
+        return getDataTable(list);
+    }
+
+    /**
+     * 审核老人注册
+     * @param id 注册ID
+     * @param body 包含 action（approve/reject）和 remark
+     */
+    @PreAuthorize("@ss.hasPermi('system:elder:edit')")
+    @Log(title = "老人注册审核", businessType = BusinessType.UPDATE)
+    @PostMapping("/auditRegistration/{id}")
+    public AjaxResult auditRegistration(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String action = body.get("action");
+        ElderRegistration registration = elderRegistrationService.selectElderRegistrationById(id);
+        if (registration == null) {
+            return error("注册记录不存在");
+        }
+        if (!"1".equals(registration.getStatus())) {
+            return error("该记录已审核，请勿重复操作");
+        }
+
+        if ("approve".equals(action)) {
+            // 通过：创建 elder 记录并绑定家属（事务保护）
+            transactionTemplate.execute(status -> {
+                Elder elder = new Elder();
+                elder.setName(registration.getName());
+                elder.setIdCardNo(registration.getIdCardNo());
+                elder.setAge(registration.getAge());
+                elder.setSex(registration.getSex());
+                elder.setPhone(registration.getPhone());
+                elder.setImage(registration.getImage());
+                elder.setRemark(registration.getRemark());
+                elder.setStatus(1L); // 启用
+                elderService.insertElder(elder);
+
+                // 绑定老人和家属关系
+                AddInfo addInfo = new AddInfo();
+                addInfo.setElderId(elder.getId());
+                addInfo.setRelation(registration.getRelation() != null ? registration.getRelation() : "家属");
+                elderService.insertInfo(addInfo, registration.getMemberId());
+
+                // 更新注册状态
+                registration.setStatus("2");
+                elderRegistrationService.updateElderRegistration(registration);
+                return null;
+            });
+        } else if ("reject".equals(action)) {
+            registration.setStatus("3");
+            elderRegistrationService.updateElderRegistration(registration);
+        } else {
+            return error("操作类型错误，请使用 approve 或 reject");
+        }
+
+        return success("操作成功");
     }
 }

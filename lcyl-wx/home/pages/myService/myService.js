@@ -1,5 +1,5 @@
 const app = getApp()
-const { request, hasToken } = require('../../../utils/request');
+const { request, verifyToken } = require('../../../utils/request');
 
 Page({
   data: {
@@ -30,17 +30,19 @@ Page({
   ],
 
   onLoad(options) {
-    if (!hasToken()) { wx.reLaunch({ url: '/pages/index/index' }); return; }
+    verifyToken().then(() => {
     this.initNavBar()
     this.setData({
       currentTab: options.tab || 'all'
     })
     this.getMyOrders()
+    }).catch(() => {});
   },
 
   onShow() {
-    if (!hasToken()) { wx.reLaunch({ url: '/pages/index/index' }); return; }
+    verifyToken().then(() => {
     this.getMyOrders()
+    }).catch(() => {});
   },
 
   initNavBar() {

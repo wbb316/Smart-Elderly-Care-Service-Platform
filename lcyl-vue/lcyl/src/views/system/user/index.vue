@@ -363,7 +363,7 @@ function handleDelete(row?: SysUser) {
   }).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 
 /** 导出按钮操作 */
@@ -423,7 +423,7 @@ function handleResetPwd(row: SysUser) {
     resetUserPwd(row.userId!, value).then(() => {
       proxy.$modal.msgSuccess("修改成功，新密码是：" + value)
     })
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 
 /** 选择条数  */
@@ -466,7 +466,7 @@ const handleFileSuccess = (response: AjaxResult, file: any, fileList: any[]) => 
   upload.open = false
   upload.isUploading = false
   proxy.$refs["uploadRef"].handleRemove(file)
-  proxy.$alert("<div style='overflow: auto;overflow-x: hidden;max-height: 70vh;padding: 10px 20px 0;'>" + response.msg + "</div>", "导入结果", { dangerouslyUseHTMLString: true })
+  proxy.$alert(response.msg, "导入结果", {})
   getList()
 }
 

@@ -288,7 +288,7 @@ function handleRefundSuccess(row: ServiceOrderRefund) {
         proxy.$modal.msgSuccess("操作成功")
         getList()
       })
-      .catch(() => {})
+      .catch((e) => { console.error(e) })
 }
 
 /** 打开退款失败弹窗 */

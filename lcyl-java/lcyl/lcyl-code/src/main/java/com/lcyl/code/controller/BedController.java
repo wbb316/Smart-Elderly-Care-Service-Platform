@@ -34,6 +34,7 @@ public class BedController extends BaseController
     @Autowired
     private BedService bedService;
 
+    @PreAuthorize("@ss.hasPermi('system:bed:query')")
     @GetMapping("/floor/{floorId}")
     public Result getFloorRoomBed(@PathVariable Long floorId) {
         List<FloorRoomBedDTO> data = bedService.getFloorRoomBedByFloorId(floorId);
@@ -94,17 +95,22 @@ public class BedController extends BaseController
             if (checkResult == 1) {
                 // 查询房间/房型信息，返回更友好的提示（可选，提升体验）
                 Room room = roomMapper.selectLcRoomById(bed.getRoomId());
-                LcRoomType roomType = roomTypeMapper.selectLcRoomTypeById(room.getRoomTypeId());
-                return AjaxResult.error("新增失败！当前" + roomType.getName () +
-                        "最大床位数为" + roomType.getBedCount() +
-                        "，已达上限");
+                if (room != null) {
+                    LcRoomType roomType = roomTypeMapper.selectLcRoomTypeById(room.getRoomTypeId());
+                    if (roomType != null) {
+                        return AjaxResult.error("新增失败！当前" + roomType.getName() +
+                                "最大床位数为" + roomType.getBedCount() +
+                                "，已达上限");
+                    }
+                }
+                return AjaxResult.error("新增失败！当前房型已达上限");
             }
             // 3. 校验通过：执行实际的新增操作
         try {
-//            bedService.insertBed ( bed ); // 实际新增床位的方法
+            bedService.insertBed ( bed ); // 实际新增床位的方法
             return AjaxResult.success("新增床位成功");
         }catch (Exception e){
-            return AjaxResult.success("新增床位失败");
+            return AjaxResult.error("新增床位失败：" + e.getMessage());
         }
 
     }

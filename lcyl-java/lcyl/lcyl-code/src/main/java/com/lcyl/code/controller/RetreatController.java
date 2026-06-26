@@ -57,12 +57,14 @@ public class RetreatController extends BaseController
     /**
      * 获取当前用户的待办任务列表
      */
+    @PreAuthorize("@ss.hasRole('nurse')")
     @GetMapping("/todo-list")
     public AjaxResult todoList() {
         List<Retreat> list = retreatService.getTodoList();
         return success(list);
     }
 
+    @PreAuthorize("@ss.hasRole('nurse')")
     @PostMapping("/complete-task")
     public AjaxResult completeTask(@RequestBody RetreatTaskCompletedDTO dto) {
         String string = retreatService.completeTask(dto);
@@ -155,7 +157,11 @@ public class RetreatController extends BaseController
                 return AjaxResult.error("仅支持图片");
             }
 
-            String fileName = UUID.randomUUID() + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+            String originalFilename = file.getOriginalFilename();
+            if (originalFilename == null || !originalFilename.contains(".")) {
+                return AjaxResult.error("文件名不合法");
+            }
+            String fileName = UUID.randomUUID() + originalFilename.substring(originalFilename.lastIndexOf("."));
             String path = System.getProperty("user.dir") + "/upload/";
             File dir = new File(path);
             if (!dir.exists()) dir.mkdirs();

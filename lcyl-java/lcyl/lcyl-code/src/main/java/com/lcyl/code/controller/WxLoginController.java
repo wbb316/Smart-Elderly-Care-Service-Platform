@@ -32,7 +32,11 @@ import com.lcyl.system.service.BedService;
 import com.lcyl.system.service.IContractService;
 import com.lcyl.system.service.IElderService;
 import com.lcyl.system.service.ILcRoomTypeService;
+
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -50,29 +54,33 @@ import static com.lcyl.common.core.domain.AjaxResult.success;
  * @Version 1.0
  */
 @RestController
+@Slf4j
 @RequestMapping("/wxLogin")
 public class WxLoginController extends BaseController {
 
     @Autowired
     private WxLoginService wxLoginService;
 
-    @Autowired
+    @Resource
     private ILcRoomTypeService lcRoomTypeService;
 
     @Autowired
     private ILcReservationService lcReservationService;
 
-    @Autowired
+    @Resource
     private IElderService elderService;
+
+    @Resource
+    private IElderRegistrationService elderRegistrationService;
 
     @Autowired
     private IBillService iBillService;
     @Autowired
     private INursingItemService nursingItemService;
-    @Autowired
+    @Resource
     private IContractService contractService;
 
-    @Autowired
+    @Resource
     private BedService bedService;
 
     @Autowired
@@ -89,9 +97,21 @@ public class WxLoginController extends BaseController {
     /**
      * 刷新令牌有效期（每次页面切换时调用，延长 Redis 会话过期时间）
      */
+    /**
+     * 验证 token 是否有效。UserInterceptor 已校验，能走到这里说明 token 有效
+     */
+    @GetMapping("/checkToken")
+    public AjaxResult checkToken(){
+        return success("ok");
+    }
+
     @GetMapping("/refreshToken")
     public AjaxResult refreshToken(HttpServletRequest request){
-        wxLoginService.refreshToken(request);
+        try {
+            wxLoginService.refreshToken(request);
+        } catch (Exception e) {
+            log.info("刷新 token 失败，可能是 token 已过期", e);
+        }
         return success("ok");
     }
 
@@ -194,6 +214,19 @@ public class WxLoginController extends BaseController {
     @PostMapping("addInfo")
     public AjaxResult addInfo(@RequestBody AddInfo addInfo){
         return success(elderService.insertInfo(addInfo));
+    }
+
+    @PostMapping("/registerElder")
+    public AjaxResult registerElder(@RequestBody ElderRegistration elderRegistration) {
+        Long memberId = UserThreadLocal.getUserId();
+        if (memberId == null) {
+            return AjaxResult.error("用户未登录");
+        }
+        elderRegistration.setMemberId(memberId);
+        elderRegistration.setStatus("1");
+        elderRegistration.setCreateTime(new java.util.Date());
+        elderRegistrationService.insertElderRegistration(elderRegistration);
+        return success("提交成功，请等待审核");
     }
 
     @PostMapping("getElderBedList")

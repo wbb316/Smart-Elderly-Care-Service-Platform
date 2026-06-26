@@ -2,6 +2,7 @@ package com.lcyl.web.controller.system;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import com.lcyl.common.constant.Constants;
+import com.lcyl.common.constant.HttpStatus;
 import com.lcyl.common.core.domain.AjaxResult;
 import com.lcyl.common.core.domain.entity.SysMenu;
 import com.lcyl.common.core.domain.entity.SysUser;
@@ -74,12 +76,15 @@ public class SysLoginController
     public AjaxResult getInfo()
     {
         LoginUser loginUser = SecurityUtils.getLoginUser();
+        if (loginUser == null) {
+            return AjaxResult.error(HttpStatus.UNAUTHORIZED, "用户未登录或登录已过期");
+        }
         SysUser user = loginUser.getUser();
         // 角色集合
         Set<String> roles = permissionService.getRolePermission(user);
         // 权限集合
         Set<String> permissions = permissionService.getMenuPermission(user);
-        if (!loginUser.getPermissions().equals(permissions))
+        if (!Objects.equals(loginUser.getPermissions(), permissions))
         {
             loginUser.setPermissions(permissions);
             tokenService.refreshToken(loginUser);

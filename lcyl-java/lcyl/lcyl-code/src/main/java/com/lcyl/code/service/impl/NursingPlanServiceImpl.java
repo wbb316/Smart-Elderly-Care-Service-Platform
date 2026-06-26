@@ -23,6 +23,8 @@ import com.lcyl.code.mapper.NursingPlanMapper;
 import com.lcyl.code.domain.NursingPlan;
 import com.lcyl.code.service.INursingPlanService;
 
+import javax.annotation.Resource;
+
 /**
  * 护理计划Service业务层处理
  * 
@@ -32,10 +34,12 @@ import com.lcyl.code.service.INursingPlanService;
 @Service
 public class NursingPlanServiceImpl implements INursingPlanService 
 {
-    @Autowired
+    @Resource
     private NursingPlanMapper nursingPlanMapper;
-    @Autowired
+    @Resource
     private NursingPlanItemMapper planItemMapper;
+    @Autowired
+    private NurseUtils nurseUtils;
 
 
     /**
@@ -68,16 +72,21 @@ public class NursingPlanServiceImpl implements INursingPlanService
      * @param nursingPlan 护理计划
      * @return 结果
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public int insertNursingPlan(NursingPlan nursingPlan)
     {
         // 1. 校验：护理项目不能重复
         List<NursingPlanItem> items = nursingPlan.getNursingPlanItemList();
         if (items != null && !items.isEmpty()) {
+            // 先检查是否有 null itemId
+            boolean hasNullItemId = items.stream().anyMatch(item -> item.getItemId() == null);
+            if (hasNullItemId) {
+                throw new ServiceException("护理项目ID不能为空");
+            }
+            // 再检查是否重复
             Set<Long> itemIds = items.stream()
                     .map(NursingPlanItem::getItemId)
-                    .filter(id -> id != null)
                     .collect(Collectors.toSet());
             if (itemIds.size() != items.size()) {
                 throw new ServiceException("护理项目不能重复选择");
@@ -85,7 +94,10 @@ public class NursingPlanServiceImpl implements INursingPlanService
         }
 
         // 2. 自动填充护理员创建人信息
-        Nurse currentNurse = NurseUtils.getCurrentNurse();
+        Nurse currentNurse = nurseUtils.getCurrentNurse();
+        if (currentNurse == null) {
+            throw new ServiceException("未获取到当前护理员信息");
+        }
         nursingPlan.setCreatorId(currentNurse.getId());
         nursingPlan.setCreatorName(currentNurse.getName());
         nursingPlan.setCreateTime(DateUtils.getNowDate());
@@ -112,7 +124,7 @@ public class NursingPlanServiceImpl implements INursingPlanService
      * @param nursingPlan 护理计划
      * @return 结果
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public int updateNursingPlan(NursingPlan nursingPlan)
     {
@@ -128,7 +140,7 @@ public class NursingPlanServiceImpl implements INursingPlanService
      * @param ids 需要删除的护理计划主键
      * @return 结果
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public int deleteNursingPlanByIds(Long[] ids)
     {
@@ -142,7 +154,7 @@ public class NursingPlanServiceImpl implements INursingPlanService
      * @param id 护理计划主键
      * @return 结果
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public int deleteNursingPlanById(Long id)
     {

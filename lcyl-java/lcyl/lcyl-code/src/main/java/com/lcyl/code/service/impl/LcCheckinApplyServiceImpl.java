@@ -13,6 +13,7 @@ import org.activiti.engine.RuntimeService;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.lcyl.code.mapper.LcCheckinApplyMapper;
 import com.lcyl.code.domain.LcCheckinApply;
 import com.lcyl.code.service.ILcCheckinApplyService;
@@ -115,6 +116,7 @@ public class LcCheckinApplyServiceImpl implements ILcCheckinApplyService
         return lcCheckinApplyMapper.selectCheckinDetail(applyId);
     }
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Long initiateCheckinApply() {
         // 1. 生成原型要求的单据编号：RZ+日期（yyyyMMddHHmmss）+2位随机数
         String applyNo = CheckinConstants.APPLY_NO_PREFIX

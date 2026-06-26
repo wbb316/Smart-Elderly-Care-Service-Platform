@@ -258,7 +258,7 @@ function handleCancel(row) {
     await cancelMyApply(key, row.businessId)
     ElMessage.success('撤销成功')
     getList()
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 
 async function handleView(row) {

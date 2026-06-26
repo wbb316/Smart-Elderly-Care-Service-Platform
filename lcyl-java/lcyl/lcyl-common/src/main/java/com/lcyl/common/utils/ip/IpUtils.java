@@ -77,7 +77,7 @@ public class IpUtils
     public static boolean internalIp(String ip)
     {
         byte[] addr = textToNumericFormatV4(ip);
-        return internalIp(addr) || "127.0.0.1".equals(ip);
+        return addr != null && (internalIp(addr) || "127.0.0.1".equals(ip));
     }
 
     /**
@@ -112,6 +112,7 @@ public class IpUtils
                 {
                     return true;
                 }
+                return false;
             case SECTION_5:
                 switch (b1)
                 {
@@ -131,7 +132,7 @@ public class IpUtils
      */
     public static byte[] textToNumericFormatV4(String text)
     {
-        if (text.length() == 0)
+        if (text == null || text.length() == 0)
         {
             return null;
         }

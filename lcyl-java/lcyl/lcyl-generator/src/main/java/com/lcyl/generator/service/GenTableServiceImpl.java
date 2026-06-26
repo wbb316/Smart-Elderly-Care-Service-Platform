@@ -152,12 +152,15 @@ public class GenTableServiceImpl implements IGenTableService
     /**
      * 创建表
      *
-     * @param sql 创建表语句
+     * @param sql 创建表语句（必须由 Druid SQL Parser 校验通过后才能传入）
      * @return 结果
      */
     @Override
     public boolean createTable(String sql)
     {
+        if (sql == null || !sql.trim().toUpperCase().startsWith("CREATE TABLE")) {
+            throw new ServiceException("仅允许执行 CREATE TABLE 语句");
+        }
         return genTableMapper.createTable(sql) == 0;
     }
 

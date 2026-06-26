@@ -109,8 +109,8 @@ const registerRules = {
   ],
   password: [
     { required: true, trigger: "blur", message: "请输入您的密码" },
-    { min: 5, max: 20, message: "用户密码长度必须介于 5 和 20 之间", trigger: "blur" },
-    { pattern: /^[^<>"'|\\]+$/, message: "不能包含非法字符：< > \" ' \\\ |", trigger: "blur" }
+    { min: 8, max: 20, message: "用户密码长度必须介于 8 和 20 之间", trigger: "blur" },
+    { pattern: /^(?=.*[a-zA-Z])(?=.*\d).{8,20}$/, message: "密码必须包含字母和数字，长度8-20位", trigger: "blur" }
   ],
   confirmPassword: [
     { required: true, trigger: "blur", message: "请再次输入您的密码" },
@@ -129,8 +129,7 @@ function handleRegister(): void {
       loading.value = true
       register(registerForm.value).then(() => {
         const username = registerForm.value.username
-        ElMessageBox.alert("<font color='red'>恭喜你，您的账号 " + username + " 注册成功！</font>", "系统提示", {
-          dangerouslyUseHTMLString: true,
+        ElMessageBox.alert("恭喜你，您的账号 " + username + " 注册成功！", "系统提示", {
           type: "success",
         }).then(() => {
           router.push("/login")

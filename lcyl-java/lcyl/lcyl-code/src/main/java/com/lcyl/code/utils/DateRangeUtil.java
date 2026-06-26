@@ -51,9 +51,14 @@ public class DateRangeUtil {
             return new Date[]{start, cal.getTime()};
         }
 
-        // 默认本周
+        // 默认本周（周一到当前时间）
         cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-        return new Date[]{cal.getTime(), endOfDay};
+        Date mondayStart = cal.getTime();
+        cal.setTime(now);
+        cal.set(Calendar.HOUR_OF_DAY, 23);
+        cal.set(Calendar.MINUTE, 59);
+        cal.set(Calendar.SECOND, 59);
+        return new Date[]{mondayStart, cal.getTime()};
     }
 
     /**

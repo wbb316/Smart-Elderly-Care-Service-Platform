@@ -1,6 +1,6 @@
 // home/pages/customVisit/customVisit.js
 const app = getApp();
-const { request, hasToken } = require('../../../utils/request');
+const { request, verifyToken } = require('../../../utils/request');
 Page({
   data: {
     today: '', // 今天日期（用于picker限制）
@@ -194,7 +194,7 @@ Page({
   },
 
   onLoad(options) {
-    if (!hasToken()) { wx.reLaunch({ url: '/pages/index/index' }); return; }
+    verifyToken().then(() => {
     // 获取今天，设置picker最小日期为今天
     const today = this.formatDate(new Date());
     this.setData({
@@ -203,6 +203,7 @@ Page({
       timeDisabled: false
     });
     this.checkTimeDisable(today);
+    }).catch(() => {});
   },
   onReady() {},
   onShow() {},

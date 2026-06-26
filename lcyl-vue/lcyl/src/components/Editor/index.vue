@@ -27,7 +27,8 @@
 </template>
 
 <script setup lang="ts">
-import axios from 'axios'
+import request from '@/utils/request'
+import { ElMessage } from 'element-plus'
 import { QuillEditor } from "@vueup/vue-quill"
 import "@vueup/vue-quill/dist/vue-quill.snow.css"
 import { getToken } from "@/utils/auth"
@@ -190,8 +191,10 @@ function handlePasteCapture(e: ClipboardEvent) {
 function insertImage(file: File) {
   const formData = new FormData()
   formData.append("file", file)
-  axios.post(uploadUrl.value, formData, { headers: { "Content-Type": "multipart/form-data", Authorization: headers.value.Authorization } }).then((res: { data: UploadFileResult }) => {
+  request.post("/common/upload", formData, { headers: { "Content-Type": "multipart/form-data" } }).then((res: { data: UploadFileResult }) => {
     handleUploadSuccess(res.data as UploadFileResult, file)
+  }).catch(() => {
+    ElMessage.error('图片上传失败')
   })
 }
 </script>

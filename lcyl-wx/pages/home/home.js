@@ -32,8 +32,24 @@ Page({
     // 图片加载失败使用默认样式
   },
 
+  // 需要登录才能访问的页面统一入口：先检查 token，没有直接去登录页
+  goAuthPage(e) {
+    const url = e.currentTarget.dataset.url;
+    const token = app.globalData.token || wx.getStorageSync('token');
+    if (!token) {
+      wx.reLaunch({ url: '/pages/index/index' });
+      return;
+    }
+    wx.navigateTo({ url: url });
+  },
+
   goRoomDetail(e) {
-    const id = e.currentTarget.dataset.id
+    const id = e.currentTarget.dataset.id;
+    const token = app.globalData.token || wx.getStorageSync('token');
+    if (!token) {
+      wx.reLaunch({ url: '/pages/index/index' });
+      return;
+    }
     wx.navigateTo({
       url: '/home/pages/roomDetail/roomDetail?id=' + id
     })

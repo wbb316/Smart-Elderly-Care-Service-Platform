@@ -97,17 +97,21 @@
   color: #333;
 }
 
-/* 底部绑定按钮 */
+/* 底部操作按钮 */
+.bottom-actions {
+  position: fixed;
+  bottom: 40rpx;
+  left: 20rpx;
+  right: 20rpx;
+  display: flex;
+  justify-content: space-between;
+}
 .bind-btn {
+  flex: 1;
   background-color: #fff;
   text-align: center;
   font-size: 34rpx;
   color: #409eff;
   padding: 30rpx;
-  margin: 0 20rpx;
   border-radius: 16rpx;
-  position: fixed;
-  bottom: 40rpx;
-  left: 0;
-  right: 0;
 }

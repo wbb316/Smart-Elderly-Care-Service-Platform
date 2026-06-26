@@ -131,7 +131,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </update>
 
     <update id="updateBedId">
-        update elder set bed_id = #{bedId} where name = #{name}
+        update elder set bed_id = #{bedId} where id = #{elderId}
     </update>
 
     <update id="updateStatus">
@@ -142,7 +142,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         delete from elder where id = #{id}
     </delete>
 
-    <delete id="deleteElderByIds" parameterType="String">
+    <delete id="deleteElderByIds" parameterType="Long">
         delete from elder where id in
         <foreach item="id" collection="array" open="(" separator="," close=")">
             #{id}

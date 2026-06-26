@@ -102,6 +102,7 @@ public class BalanceController extends BaseController
         return toAjax(balanceService.deleteBalanceByIds(ids));
     }
 
+    @PreAuthorize("@ss.hasPermi('code:balance:query')")
     //根据老人id查询余额
     @GetMapping("/elder/{elderId}")
     public AjaxResult getBalanceByElderId(@PathVariable Long elderId) {

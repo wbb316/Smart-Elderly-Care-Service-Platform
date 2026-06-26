@@ -49,7 +49,7 @@ public class LcReservationController extends BaseController
         return getDataTable(list);
     }
 
-    //@PreAuthorize("@ss.hasPermi('code:reservation:typeOptions')")
+    @PreAuthorize("@ss.hasPermi('code:reservation:list')")
     @GetMapping("/typeOptions/{id}")
     public TableDataInfo typeList(@PathVariable("id") Long id){
         startPage();
@@ -93,6 +93,7 @@ public class LcReservationController extends BaseController
     }
 
     //到访时间
+    @PreAuthorize("@ss.hasPermi('code:reservation:edit')")
     @PutMapping("/updateArrivalTime")
     public AjaxResult updateArrayTime(@RequestBody ArrayDto arrayDto){
         lcReservationService.updateArrayTime(arrayDto);
@@ -104,6 +105,7 @@ public class LcReservationController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('code:reservation:edit')")
     @Log(title = "预约来访", businessType = BusinessType.UPDATE)
+    @PutMapping
     public AjaxResult edit(@RequestBody LcReservation lcReservation)
     {
         return toAjax(lcReservationService.updateLcReservation(lcReservation));

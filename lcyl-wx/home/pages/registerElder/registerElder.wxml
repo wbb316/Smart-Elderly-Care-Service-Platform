@@ -1,2 +1,44 @@
-<!--home/pages/registerElder/registerElder.wxml-->
-<text>home/pages/registerElder/registerElder.wxml</text>
+<view class="contain">
+  <view class="info">
+    <view class="form-item">
+      <text class="label">老人姓名 <text style="color:red">*</text></text>
+      <input class="input" placeholder="请输入老人姓名" bindinput="onNameInput" value="{{name}}" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">身份证号 <text style="color:red">*</text></text>
+      <input class="input" placeholder="请输入身份证号" bindinput="onIdCardInput" value="{{idCardNo}}" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">性别 <text style="color:red">*</text></text>
+      <picker mode="selector" range="{{['男','女']}}" bindchange="onSexChange">
+        <view class="picker-text">{{sex || '请选择性别'}}</view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">年龄</text>
+      <input class="input" placeholder="请输入年龄" type="number" bindinput="onAgeInput" value="{{age}}" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">联系电话</text>
+      <input class="input" placeholder="请输入联系电话" type="number" bindinput="onPhoneInput" value="{{phone}}" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">与老人关系 <text style="color:red">*</text></text>
+      <input class="input" placeholder="如：父子、母女、亲戚" bindinput="onRelationInput" value="{{relation}}" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">备注</text>
+      <textarea class="textarea" placeholder="其他需要说明的信息" bindinput="onRemarkInput" value="{{remark}}" />
+    </view>
+  </view>
+
+  <button class="submit-btn" bindtap="submitForm" disabled="{{submitting}}">
+    {{submitting ? '提交中...' : '提交审核'}}
+  </button>
+</view>

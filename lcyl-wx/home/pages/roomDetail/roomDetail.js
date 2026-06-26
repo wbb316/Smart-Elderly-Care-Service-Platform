@@ -1,5 +1,5 @@
 const app = getApp()
-const { request, hasToken } = require('../../../utils/request');
+const { request, verifyToken } = require('../../../utils/request');
 Page({
   data: {
     roomInfo: {},
@@ -9,7 +9,7 @@ Page({
   },
 
   onLoad(options) {
-    if (!hasToken()) { wx.reLaunch({ url: '/pages/index/index' }); return; }
+    verifyToken().then(() => {
     const id = options.id
     const now = new Date()
     const today = now.getFullYear() + '-' +
@@ -17,6 +17,7 @@ Page({
       String(now.getDate()).padStart(2, '0')
     this.setData({ today })
     this.getRoomDetail(id)
+    }).catch(() => {});
   },
 
   getRoomDetail(id) {

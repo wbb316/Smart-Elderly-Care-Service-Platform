@@ -32,7 +32,16 @@ public class UserInterceptor implements HandlerInterceptor {
             throw new BaseException("小程序登录", "401", null, "没有权限,请登录");
         }
         // 存在token,解析token
-        Map<String, Object> claims = tokenService.parseToken(token);
+        // 去除 "Bearer " 前缀（小程序标准请求头格式）
+        if (token.startsWith(Constants.TOKEN_PREFIX)) {
+            token = token.substring(Constants.TOKEN_PREFIX.length());
+        }
+        Map<String, Object> claims;
+        try {
+            claims = tokenService.parseToken(token);
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            throw new BaseException("小程序登录", "401", null, "token已过期,请重新登录");
+        }
         // token是否非法
         if (ObjectUtils.isEmpty(claims)) {
             //token失效

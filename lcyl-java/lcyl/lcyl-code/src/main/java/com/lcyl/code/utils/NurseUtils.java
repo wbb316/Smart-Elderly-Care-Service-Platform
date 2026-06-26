@@ -11,16 +11,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class NurseUtils {
 
-    private static INurseService nurseService;
+    private final INurseService nurseService;
 
     @Autowired
-    public void setNurseService(INurseService nurseService) {
-
-        NurseUtils.nurseService = nurseService;
+    public NurseUtils(INurseService nurseService) {
+        this.nurseService = nurseService;
     }
 
-    public static Nurse getCurrentNurse() {
-        LoginUser loginUser = (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    public Nurse getCurrentNurse() {
+        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            throw new ServiceException("当前用户未登录");
+        }
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(principal instanceof LoginUser)) {
+            throw new ServiceException("当前用户认证信息异常");
+        }
+        LoginUser loginUser = (LoginUser) principal;
         Long userId = loginUser.getUserId();
         Nurse nurse = nurseService.selectNurseByUserId(userId);
         if (nurse == null) {

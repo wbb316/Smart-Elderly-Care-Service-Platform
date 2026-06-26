@@ -1,4 +1,4 @@
-const { request, hasToken, refreshSession } = require('../../utils/request');
+const { request, verifyToken, refreshSession } = require('../../utils/request');
 const app = getApp()
 Page({
 
@@ -20,8 +20,7 @@ Page({
 
   logout() {
     app.globalData.token = ''
-    app.globalData.isLoggedIn = false
-    wx.removeStorageSync('token')
+        wx.removeStorageSync('token')
     wx.reLaunch({
       url: "/pages/index/index"
     })
@@ -55,11 +54,9 @@ Page({
   },
 
   onShow() {
-    if (!hasToken()) {
-      wx.reLaunch({ url: '/pages/index/index' });
-      return;
-    }
+    verifyToken().then(() => {
     refreshSession();
     this.loadUserInfo();
+    }).catch(() => {});
   }
 })

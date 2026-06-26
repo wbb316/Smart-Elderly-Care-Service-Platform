@@ -1,4 +1,4 @@
-const { request, hasToken } = require('../../../utils/request');
+const { request, verifyToken } = require('../../../utils/request');
 Page({
   data: {
     detail: {},
@@ -8,7 +8,7 @@ Page({
   },
 
   onLoad(options) {
-    if (!hasToken()) { wx.reLaunch({ url: '/pages/index/index' }); return; }
+    verifyToken().then(() => {
     this.setData({
       detail: {
         id: options.roomTypeId,
@@ -18,6 +18,7 @@ Page({
       },
       bookingDate: decodeURIComponent(options.bookingDate || "")
     })
+    }).catch(() => {});
   },
 
   onRemarkInput(e) {

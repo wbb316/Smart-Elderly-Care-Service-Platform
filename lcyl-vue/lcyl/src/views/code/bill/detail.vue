@@ -222,6 +222,8 @@ async function getDetail() {
     billItemList.value = itemRes.rows || []
     const paymentRows = paymentRes.rows || []
     paymentRecord.value = paymentRows.length > 0 ? paymentRows[0] : null
+  } catch (e) {
+    console.error('加载账单详情失败', e)
   } finally {
     loading.value = false
   }

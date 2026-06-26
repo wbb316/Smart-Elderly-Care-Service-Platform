@@ -81,16 +81,22 @@ const router = useRouter()
 const { proxy } = getCurrentInstance()
 
 const loginForm = ref<LoginForm>({
-  username: "admin",
-  password: "admin123",
+  username: "",
+  password: "",
   rememberMe: false,
   code: "",
   uuid: ""
 })
 
 const loginRules = {
-  username: [{ required: true, trigger: "blur", message: "请输入您的账号" }],
-  password: [{ required: true, trigger: "blur", message: "请输入您的密码" }],
+  username: [
+    { required: true, trigger: "blur", message: "请输入您的账号" },
+    { max: 50, message: "用户账号长度不能超过 50 个字符", trigger: "blur" }
+  ],
+  password: [
+    { required: true, trigger: "blur", message: "请输入您的密码" },
+    { max: 50, message: "密码长度不能超过 50 个字符", trigger: "blur" }
+  ],
   code: [{ required: true, trigger: "change", message: "请输入验证码" }]
 }
 
@@ -112,9 +118,9 @@ function handleLogin(): void {
       loading.value = true
       // 勾选了需要记住密码设置在 cookie 中设置记住用户名和密码
       if (loginForm.value.rememberMe) {
-        Cookies.set("username", loginForm.value.username, { expires: 30 })
-        Cookies.set("password", encrypt(loginForm.value.password), { expires: 30 })
-        Cookies.set("rememberMe", loginForm.value.rememberMe, { expires: 30 })
+        Cookies.set("username", loginForm.value.username, { expires: 30, secure: true, sameSite: 'Strict' })
+        Cookies.set("password", encrypt(loginForm.value.password), { expires: 30, secure: true, sameSite: 'Strict' })
+        Cookies.set("rememberMe", String(loginForm.value.rememberMe), { expires: 30, secure: true, sameSite: 'Strict' })
       } else {
         // 否则移除
         Cookies.remove("username")

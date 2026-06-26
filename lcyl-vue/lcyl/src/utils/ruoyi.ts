@@ -134,9 +134,11 @@ export function parseStrEmpty(str: any): string {
   return str
 }
 
-// 数据合并
+// 数据合并（防止原型污染）
 export function mergeRecursive(source: any, target: any): any {
   for (const p in target) {
+    if (!Object.prototype.hasOwnProperty.call(target, p)) continue
+    if (p === '__proto__' || p === 'constructor' || p === 'prototype') continue
     try {
       if (target[p].constructor == Object) {
         source[p] = mergeRecursive(source[p], target[p])

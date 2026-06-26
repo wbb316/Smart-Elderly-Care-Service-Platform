@@ -1,5 +1,6 @@
 package com.lcyl.code.constant;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,51 +48,59 @@ public final class RetreatConstants {
     public static final Integer ACTION_REJECT = 2;//驳回
 
     //节点角色映射（和表中角色对应的key一致）
-    public static final Map<Integer,String> NODE_ROLE_MAP = new HashMap<>();
+    public static final Map<Integer,String> NODE_ROLE_MAP;
     static {
-        NODE_ROLE_MAP.put(RETREAT_STEP_NO_INIT, "nurse");
-        NODE_ROLE_MAP.put(RETREAT_STEP_NO_ONE, "nurse_leader");
-        NODE_ROLE_MAP.put(RETREAT_STEP_NO_TWO, "legal_staff");
-        NODE_ROLE_MAP.put(RETREAT_STEP_NO_THREE, "settleman_staff");
-        NODE_ROLE_MAP.put(RETREAT_STEP_NO_FOUR, "settleman_leader");
-        NODE_ROLE_MAP.put(RETREAT_STEP_NO_FIVE, "vice_dean");
-        NODE_ROLE_MAP.put(RETREAT_STEP_NO_SIX, "settleman_leader");
+        Map<Integer,String> map = new HashMap<>();
+        map.put(RETREAT_STEP_NO_INIT, "nurse");
+        map.put(RETREAT_STEP_NO_ONE, "nurse_leader");
+        map.put(RETREAT_STEP_NO_TWO, "legal_staff");
+        map.put(RETREAT_STEP_NO_THREE, "settleman_staff");
+        map.put(RETREAT_STEP_NO_FOUR, "settleman_leader");
+        map.put(RETREAT_STEP_NO_FIVE, "vice_dean");
+        map.put(RETREAT_STEP_NO_SIX, "settleman_leader");
+        NODE_ROLE_MAP = Collections.unmodifiableMap(map);
     }
 
     //下一节点映射
-    public static final Map<Integer,Integer> NEXT_NODE_MAP = new HashMap<>();
+    public static final Map<Integer,Integer> NEXT_NODE_MAP;
     static {
-        NEXT_NODE_MAP.put(RETREAT_STEP_NO_INIT, RETREAT_STEP_NO_ONE);
-        NEXT_NODE_MAP.put(RETREAT_STEP_NO_ONE, RETREAT_STEP_NO_TWO);
-        NEXT_NODE_MAP.put(RETREAT_STEP_NO_TWO, RETREAT_STEP_NO_THREE);
-        NEXT_NODE_MAP.put(RETREAT_STEP_NO_THREE, RETREAT_STEP_NO_FOUR);
-        NEXT_NODE_MAP.put(RETREAT_STEP_NO_FOUR, RETREAT_STEP_NO_FIVE);
-        NEXT_NODE_MAP.put(RETREAT_STEP_NO_FIVE, RETREAT_STEP_NO_SIX);
-        NEXT_NODE_MAP.put(RETREAT_STEP_NO_SIX, null); // 添加节点6的映射
+        Map<Integer,Integer> map = new HashMap<>();
+        map.put(RETREAT_STEP_NO_INIT, RETREAT_STEP_NO_ONE);
+        map.put(RETREAT_STEP_NO_ONE, RETREAT_STEP_NO_TWO);
+        map.put(RETREAT_STEP_NO_TWO, RETREAT_STEP_NO_THREE);
+        map.put(RETREAT_STEP_NO_THREE, RETREAT_STEP_NO_FOUR);
+        map.put(RETREAT_STEP_NO_FOUR, RETREAT_STEP_NO_FIVE);
+        map.put(RETREAT_STEP_NO_FIVE, RETREAT_STEP_NO_SIX);
+        map.put(RETREAT_STEP_NO_SIX, null);
+        NEXT_NODE_MAP = Collections.unmodifiableMap(map);
     }
 
     //表单是否可编辑（前端用）
-    public static final Map<Integer, Boolean> EDITABLE_MAP = new HashMap<>();
+    public static final Map<Integer, Boolean> EDITABLE_MAP;
     static {
-        EDITABLE_MAP.put(RETREAT_STEP_NO_INIT, true);   // 发起申请时可编辑
-        EDITABLE_MAP.put(RETREAT_STEP_NO_ONE, false);   // 审批只读
-        EDITABLE_MAP.put(RETREAT_STEP_NO_TWO, true);    // 法务上传协议可编辑（上传组件）
-        EDITABLE_MAP.put(RETREAT_STEP_NO_THREE, true);  // 结算员调整账单可编辑
-        EDITABLE_MAP.put(RETREAT_STEP_NO_FOUR, false);  // 审批只读
-        EDITABLE_MAP.put(RETREAT_STEP_NO_FIVE, false);  // 审批只读
-        EDITABLE_MAP.put(RETREAT_STEP_NO_SIX, true);    // 结算员结清费用可编辑
+        Map<Integer, Boolean> map = new HashMap<>();
+        map.put(RETREAT_STEP_NO_INIT, true);
+        map.put(RETREAT_STEP_NO_ONE, false);
+        map.put(RETREAT_STEP_NO_TWO, true);
+        map.put(RETREAT_STEP_NO_THREE, true);
+        map.put(RETREAT_STEP_NO_FOUR, false);
+        map.put(RETREAT_STEP_NO_FIVE, false);
+        map.put(RETREAT_STEP_NO_SIX, true);
+        EDITABLE_MAP = Collections.unmodifiableMap(map);
     }
 
     // 是否需要审批按钮
-    public static final Map<Integer, Boolean> NEED_APPROVAL_MAP = new HashMap<>();
+    public static final Map<Integer, Boolean> NEED_APPROVAL_MAP;
     static {
-        NEED_APPROVAL_MAP.put(RETREAT_STEP_NO_INIT, false);
-        NEED_APPROVAL_MAP.put(RETREAT_STEP_NO_ONE, true);
-        NEED_APPROVAL_MAP.put(RETREAT_STEP_NO_TWO, false);
-        NEED_APPROVAL_MAP.put(RETREAT_STEP_NO_THREE, false);
-        NEED_APPROVAL_MAP.put(RETREAT_STEP_NO_FOUR, true);
-        NEED_APPROVAL_MAP.put(RETREAT_STEP_NO_FIVE, true);
-        NEED_APPROVAL_MAP.put(RETREAT_STEP_NO_SIX, false);
+        Map<Integer, Boolean> map = new HashMap<>();
+        map.put(RETREAT_STEP_NO_INIT, false);
+        map.put(RETREAT_STEP_NO_ONE, true);
+        map.put(RETREAT_STEP_NO_TWO, false);
+        map.put(RETREAT_STEP_NO_THREE, false);
+        map.put(RETREAT_STEP_NO_FOUR, true);
+        map.put(RETREAT_STEP_NO_FIVE, true);
+        map.put(RETREAT_STEP_NO_SIX, false);
+        NEED_APPROVAL_MAP = Collections.unmodifiableMap(map);
     }
 
     private RetreatConstants() {}

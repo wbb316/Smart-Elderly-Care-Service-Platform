@@ -29,6 +29,9 @@ public class NursingTaskServiceImpl implements NursingTaskService {
     @Autowired
     private ServiceOrderMapper serviceOrderMapper;
 
+    @Autowired
+    private NurseUtils nurseUtils;
+
     @Override
     public List<NursingTaskVO> selectTaskList(NursingTaskQuery query) {
         return nursingTaskMapper.selectTaskList(query);
@@ -42,7 +45,10 @@ public class NursingTaskServiceImpl implements NursingTaskService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int executeTask(Long taskId, ExecuteRecordVO vo) {
-        Nurse currentNurse = NurseUtils.getCurrentNurse();
+        Nurse currentNurse = nurseUtils.getCurrentNurse();
+        if (currentNurse == null) {
+            throw new ServiceException("未获取到当前护理员信息");
+        }
         Long executorId = currentNurse.getId();
         String executorName = currentNurse.getName();
         Date executeTime = DateUtils.getNowDate();
@@ -62,7 +68,10 @@ public class NursingTaskServiceImpl implements NursingTaskService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int cancelTask(Long taskId, String cancelReason) {
-        Nurse currentNurse = NurseUtils.getCurrentNurse();
+        Nurse currentNurse = nurseUtils.getCurrentNurse();
+        if (currentNurse == null) {
+            throw new ServiceException("未获取到当前护理员信息");
+        }
         Long executorId = currentNurse.getId();
         String executorName = currentNurse.getName();
         Date cancelTime = DateUtils.getNowDate();
@@ -80,6 +89,7 @@ public class NursingTaskServiceImpl implements NursingTaskService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int rescheduleTask(Long id, RescheduleVO vo) {
         return nursingTaskMapper.updateExpectedServiceTime(id, vo.getExpectedServiceTime());
     }
@@ -87,7 +97,10 @@ public class NursingTaskServiceImpl implements NursingTaskService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int completedTask(Long taskId) {
-        Nurse currentNurse = NurseUtils.getCurrentNurse();
+        Nurse currentNurse = nurseUtils.getCurrentNurse();
+        if (currentNurse == null) {
+            throw new ServiceException("未获取到当前护理员信息");
+        }
         Long executorId = currentNurse.getId();
         String executorName = currentNurse.getName();
         Date finishTime = DateUtils.getNowDate();

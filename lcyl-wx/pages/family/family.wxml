@@ -16,7 +16,7 @@
       <text class="unbind" bindtap="handleUnbind" data-id="{{item.id}}">解绑</text>
     </view>
     <view class="family-actions">
-      <!-- <view class="action-btn" bindtap="goToHealth" data-id="{{item.id}}">健康数据</view> -->
+      <view class="action-btn" bindtap="goToHealth" data-id="{{item.id}}">健康数据</view>
       <view class="action-btn" bindtap="goToBill" data-id="{{item.id}}">我的账单</view>
       <view class="action-btn" bindtap="goToLeave" data-id="{{item.id}}">请假</view>
     </view>
@@ -28,6 +28,9 @@
     <text class="empty-tip">您暂时没有绑定的家人</text>
   </view>
 
-  <!-- 底部绑定按钮 -->
-  <view class="bind-btn" bindtap="goToBind">绑定家人</view>
+  <!-- 底部操作按钮 -->
+  <view class="bottom-actions">
+    <view class="bind-btn" bindtap="goToBind">绑定家人</view>
+    <view class="bind-btn" bindtap="goToRegisterElder" style="margin-left:20rpx;background:#5ac8fa;">注册老人</view>
+  </view>
 </view>

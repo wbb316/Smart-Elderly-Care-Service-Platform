@@ -4,6 +4,7 @@ import java.util.List;
 import com.lcyl.system.domain.Elder;
 import com.lcyl.system.domain.dto.AddInfo;
 import com.lcyl.system.domain.vo.BedVO;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 老人Service接口
@@ -11,6 +12,7 @@ import com.lcyl.system.domain.vo.BedVO;
  * @author ruoyi
  * @date 2026-05-23
  */
+@Mapper
 public interface IElderService
 {
     /**
@@ -56,9 +58,14 @@ public interface IElderService
     public int updateElder(Elder elder);
 
     /**
-     * 新增老人-家属关联
+     * 新增老人-家属关联（当前登录会员）
      */
     public int insertInfo(AddInfo addInfo);
+
+    /**
+     * 新增老人-家属关联（指定会员ID，用于审核注册场景）
+     */
+    public int insertInfo(AddInfo addInfo, Long memberId);
 
     /**
      * 查询老人床位列表（家属端）
@@ -85,4 +92,5 @@ public interface IElderService
      * @return 结果
      */
     public int deleteElderById(Long id);
+
 }

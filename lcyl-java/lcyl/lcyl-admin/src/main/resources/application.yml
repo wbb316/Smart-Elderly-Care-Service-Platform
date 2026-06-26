@@ -57,7 +57,7 @@ spring:
   servlet:
     multipart:
       # 单个文件大小
-      max-file-size: 10MB
+      max-file-size: 50MB
       # 设置总上传的文件大小
       max-request-size: 20MB
   # 服务模块
@@ -153,7 +153,7 @@ aliyun:
     endpoint: oss-cn-hangzhou.aliyuncs.com # oss对外服务的访问域名
     accessKeyId: ${OSS_KEY}     # 访问身份验证中用到用户标识
     accessKeySecret: ${OSS_SECRET} # 用户用于加密签名字符串和oss用来验证签名字符串的密钥
-    bucketName: sfzy-0000  #oss的存储空间
+    bucketName: sfzy-000  #oss的存储空间
     dir:
       prefix: lcyl/images/ # 上传文件夹路径前缀
       datePattern: yyyyMMdd # 上传文件夹路径中日期子文件夹的格式

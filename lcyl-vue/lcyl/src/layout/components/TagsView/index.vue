@@ -201,7 +201,7 @@ function closeLeftTags(): void {
 }
 
 function closeOthersTags(): void {
-  router.push(selectedTag.value).catch(() => { })
+  router.push(selectedTag.value).catch(err => { console.error('路由跳转失败', err) })
   proxy.$tab.closeOtherPage(selectedTag.value).then(() => {
     moveToCurrentTag()
   })

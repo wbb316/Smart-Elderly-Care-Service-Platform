@@ -5,6 +5,7 @@ import com.lcyl.code.dto.ElderLeaveDto;
 import com.lcyl.code.vo.ElderLeaveFormVo;
 import com.lcyl.code.vo.ElderLeaveVo;
 import com.lcyl.code.vo.ElderOptionVo;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
  * @author cch
  * @date 2026-03-20
  */
+@Mapper
 public interface ElderLeaveMapper {
     /**
      * 查询老人请假申请

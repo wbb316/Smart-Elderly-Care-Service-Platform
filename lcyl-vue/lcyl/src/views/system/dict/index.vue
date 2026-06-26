@@ -310,7 +310,7 @@ function handleDelete(row?: SysDictType) {
   }).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 
 /** 导出按钮操作 */

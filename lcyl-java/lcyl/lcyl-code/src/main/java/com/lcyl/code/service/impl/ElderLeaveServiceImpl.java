@@ -137,7 +137,7 @@ public class ElderLeaveServiceImpl implements IElderLeaveService {
     // 生成单据编号
     private String generateOrderNo() {
         //生成规则：LEAVE+当前时间戳（毫秒级）
-        return "LEAVE" + System.currentTimeMillis();
+        return "LEAVE" + System.currentTimeMillis() + String.format("%03d", (int)(Math.random() * 1000));
     }
 
     // 计算请假天数
@@ -337,7 +337,11 @@ public class ElderLeaveServiceImpl implements IElderLeaveService {
         if (member == null) {
             throw new RuntimeException("获取用户信息失败");
         }
-        elderLeave.setApplyUserId(member.getId().longValue());
+        Integer dbMemberId = member.getId();
+        if (dbMemberId == null) {
+            throw new RuntimeException("用户ID不能为空");
+        }
+        elderLeave.setApplyUserId(dbMemberId.longValue());
         elderLeave.setApplyUserName(member.getName());
         elderLeave.setCreateBy(member.getName());
         elderLeave.setCreateTime(new Date());
@@ -583,7 +587,7 @@ public class ElderLeaveServiceImpl implements IElderLeaveService {
                 // 优先通过流程实例ID查业务单据
                 elderLeave = elderLeaveMapper.selectByProcessInstanceId(task.getProcessInstanceId());
             } catch (Exception e) {
-                // 如果出现数据权限拦截器异常，我们退而求其次
+                log.debug("通过流程实例ID查询单据失败, processInstanceId={}", task.getProcessInstanceId(), e);
             }
 
             // 如果查不到，尝试通过 businessKey (leaveId) 查
@@ -592,6 +596,7 @@ public class ElderLeaveServiceImpl implements IElderLeaveService {
                     Long leaveId = Long.valueOf(task.getBusinessKey());
                     elderLeave = elderLeaveMapper.selectElderLeaveById(leaveId);
                 } catch (Exception e) {
+                    log.debug("通过businessKey查询单据失败, businessKey={}", task.getBusinessKey(), e);
                 }
             }
 
@@ -831,7 +836,7 @@ public class ElderLeaveServiceImpl implements IElderLeaveService {
         }
 
         // 校验任务归属
-        if (!elderLeave.getProcessInstanceId().equals(task.getProcessInstanceId())) {
+        if (elderLeave.getProcessInstanceId()==null||!elderLeave.getProcessInstanceId().equals(task.getProcessInstanceId())) {
             throw new RuntimeException("任务与请假单流程实例不匹配");
         }
 
@@ -885,14 +890,13 @@ public class ElderLeaveServiceImpl implements IElderLeaveService {
 
         // 如果查到了 更新最新的信息到数据库
         if (currentTasks != null && !currentTasks.isEmpty()) {
-            for (Task currentTask : currentTasks) {
-                assignTaskAssignee(currentTask, elderLeave);
-                // 回写最新任务信息，确保页面“当前节点”与流程引擎一致
-                elderLeave.setCurrentTaskKey(currentTask.getTaskDefinitionKey());
-                elderLeave.setCurrentTaskName(currentTask.getName());
-                // 确保流程实例ID同步（防止某些情况下ID变化）
-                elderLeave.setProcessInstanceId(currentTask.getProcessInstanceId());
-            }
+            Task currentTask = currentTasks.get(0);
+            assignTaskAssignee(currentTask, elderLeave);
+            // 回写最新任务信息，确保页面”当前节点”与流程引擎一致
+            elderLeave.setCurrentTaskKey(currentTask.getTaskDefinitionKey());
+            elderLeave.setCurrentTaskName(currentTask.getName());
+            // 确保流程实例ID同步（防止某些情况下ID变化）
+            elderLeave.setProcessInstanceId(currentTask.getProcessInstanceId());
         } else {
             // 如果暂时查不到任务，不清空原节点信息；状态已在前面设置为 approving
         }

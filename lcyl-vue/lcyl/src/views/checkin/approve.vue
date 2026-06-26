@@ -249,11 +249,11 @@ const submitApproval = () => {
 
     // 根据审批结果确定提示信息
     let confirmTitle = '确认提交';
-    let confirmMessage = `确认提交审批结果吗？<br/>审批结论：<strong>${approveForm.approveResult}</strong>`;
-    
+    let confirmMessage = `确认提交审批结果吗？审批结论：${approveForm.approveResult}`;
+
     if (approveForm.approveResult === '驳回') {
       confirmTitle = '确认驳回';
-      confirmMessage = `确认驳回该申请吗？<br/>审批结论：<strong>${approveForm.approveResult}</strong><br/>申请人将收到通知并可修改后重新提交。`;
+      confirmMessage = `确认驳回该申请吗？审批结论：${approveForm.approveResult}。申请人将收到通知并可修改后重新提交。`;
     }
 
     ElMessageBox.confirm(
@@ -262,8 +262,7 @@ const submitApproval = () => {
       {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        type: approveForm.approveResult === '驳回' ? 'warning' : 'warning',
-        dangerouslyUseHTMLString: true
+        type: 'warning'
       }
     ).then(async () => {
       try {

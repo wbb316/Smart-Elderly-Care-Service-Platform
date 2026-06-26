@@ -50,6 +50,23 @@ public class SqlUtil
     }
 
     /**
+     * 去除 SQL 内联注释，防止绕过关键字检测（如 SEL/*ECT）
+    */
+    private static String stripSqlComments(String value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        // 去除块注释 /**/（使用 (?s) 启用 DOTALL 模式以匹配多行注释）
+        value = value.replaceAll("(?s)/\\*.*?\\*/", "");
+        // 去除行注释 -- 和 #
+        value = value.replaceAll("--[^\n]*", "");
+        value = value.replaceAll("#[^\n]*", "");
+        return value;
+    }
+
+    /**
      * SQL关键字检查
      */
     public static void filterKeyword(String value)
@@ -58,10 +75,12 @@ public class SqlUtil
         {
             return;
         }
+        // 先剥离注释再检测，防止 SEL/**/ECT 绕过
+        String cleaned = stripSqlComments(value);
         String[] sqlKeywords = StringUtils.split(SQL_REGEX, "\\|");
         for (String sqlKeyword : sqlKeywords)
         {
-            if (StringUtils.indexOfIgnoreCase(value, sqlKeyword) > -1)
+            if (StringUtils.indexOfIgnoreCase(cleaned, sqlKeyword) > -1)
             {
                 throw new UtilException("参数存在SQL注入风险");
             }

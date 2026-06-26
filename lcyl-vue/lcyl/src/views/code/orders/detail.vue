@@ -277,6 +277,8 @@ async function getDetail() {
     executionInfo.value = executionRes.data || null
     const rows = (refundRes as any).rows || []
     latestRefund.value = rows.length ? rows[rows.length - 1] : null
+  } catch (e) {
+    console.error('加载订单详情失败', e)
   } finally {
     loading.value = false
   }

@@ -376,7 +376,7 @@ function handleChangeStatus(row: NursingPlan) {
   }).then(() => {
     getList();
     proxy.$modal.msgSuccess(`${text}成功`);
-  }).catch(() => {});
+  }).catch((e) => { console.error(e) });
 }
 
 /** 查询护理计划列表 */
@@ -564,7 +564,7 @@ function handleDelete(row: NursingPlan) {
   }).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 getList()
 </script>

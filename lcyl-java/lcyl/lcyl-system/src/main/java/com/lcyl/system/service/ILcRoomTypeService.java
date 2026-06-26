@@ -1,6 +1,7 @@
 package com.lcyl.system.service;
 
 import com.lcyl.system.domain.LcRoomType;
+import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
@@ -10,6 +11,7 @@ import java.util.List;
  * @author ruoyi
  * @date 2026-03-23
  */
+@Mapper
 public interface ILcRoomTypeService 
 {
     /**

@@ -408,7 +408,7 @@ function loadCheckIn() {
         Object.assign(configForm, res.data.configInfo)
       }
     }
-  }).catch(() => {})
+  }).catch(err => { console.error('加载入住信息失败', err) })
 }
 
 function loadNursingLevels() {
@@ -416,7 +416,7 @@ function loadNursingLevels() {
     if (res.code === 200 && res.rows) {
       nursingLevelList.value = res.rows
     }
-  }).catch(() => {})
+  }).catch(err => { console.error('加载护理等级列表失败', err) })
 }
 
 /** 加载房型列表，用于选择床位后自动带出床位费用 */
@@ -685,7 +685,7 @@ function submitConfig() {
     }).catch(() => {
       ElMessage.error('提交失败')
     })
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 
 function goBack() {

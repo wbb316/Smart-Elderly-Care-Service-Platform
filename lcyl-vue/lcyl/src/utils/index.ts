@@ -1,6 +1,17 @@
 import { parseTime } from './ruoyi'
 
 /**
+ * 安全打开 URL（仅允许 http/https 协议）
+ */
+export function safeOpenUrl(url: string, target: string = '_blank'): void {
+  if (!url) return
+  const lower = url.toLowerCase().trim()
+  if (lower.startsWith('http://') || lower.startsWith('https://')) {
+    window.open(url, target)
+  }
+}
+
+/**
  * 表格时间格式化
  */
 export function formatDate(cellValue: any): string {
@@ -144,13 +155,15 @@ export function param2Obj(url: string): Record<string, string> {
 }
 
 /**
+ * 安全地将 HTML 转为纯文本，不执行脚本标签
  * @param val
  * @returns {string}
  */
 export function html2Text(val: string): string {
-  const div = document.createElement('div')
-  div.innerHTML = val
-  return div.textContent || div.innerText || ''
+  if (!val) return ''
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(val, 'text/html')
+  return doc.body.textContent || ''
 }
 
 /**

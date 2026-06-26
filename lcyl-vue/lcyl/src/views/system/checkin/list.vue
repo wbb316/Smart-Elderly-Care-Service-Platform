@@ -234,7 +234,7 @@ function handleClaim(row) {
     }).catch(error => {
       ElMessage.error('任务认领失败：' + (error.message || '未知错误'))
     })
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 
 /** 查看已完成任务 */

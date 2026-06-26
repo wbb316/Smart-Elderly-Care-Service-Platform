@@ -7,7 +7,8 @@ export function getToken(): string | undefined {
 }
 
 export function setToken(token: string): string | undefined {
-  return Cookies.set(TokenKey, token)
+  const isSecure = location.protocol === 'https:'
+  return Cookies.set(TokenKey, token, { secure: isSecure, sameSite: 'Strict' })
 }
 
 export function removeToken(): void {

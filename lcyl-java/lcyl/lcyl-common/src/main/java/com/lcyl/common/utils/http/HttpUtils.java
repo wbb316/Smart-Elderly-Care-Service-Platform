@@ -10,13 +10,7 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
-import java.security.cert.X509Certificate;
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.lcyl.common.constant.Constants;
@@ -63,6 +57,25 @@ public class HttpUtils
      * @param contentType 编码类型
      * @return 所代表远程资源的响应结果
      */
+    private static boolean isUnsafeHost(String host) {
+        if (host == null) return true;
+        if ("localhost".equalsIgnoreCase(host)) return true;
+        if (host.startsWith("127.")) return true;
+        if (host.startsWith("10.")) return true;
+        if (host.startsWith("0.")) return true;
+        if (host.startsWith("172.")) {
+            String[] parts = host.split("\\.");
+            if (parts.length >= 2) {
+                try {
+                    int second = Integer.parseInt(parts[1]);
+                    if (second >= 16 && second <= 31) return true;
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        if (host.startsWith("192.168.")) return true;
+        return false;
+    }
+
     public static String sendGet(String url, String param, String contentType)
     {
         StringBuilder result = new StringBuilder();
@@ -72,7 +85,13 @@ public class HttpUtils
             String urlNameString = StringUtils.isNotBlank(param) ? url + "?" + param : url;
             log.info("sendGet - {}", url);
             URL realUrl = new URL(urlNameString);
+            if (isUnsafeHost(realUrl.getHost())) {
+                log.error("拒绝访问内网地址: {}", realUrl.getHost());
+                throw new RuntimeException("不允许访问内网地址");
+            }
             URLConnection connection = realUrl.openConnection();
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
             connection.setRequestProperty("accept", "*/*");
             connection.setRequestProperty("connection", "Keep-Alive");
             connection.setRequestProperty("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
@@ -147,6 +166,10 @@ public class HttpUtils
         {
             log.info("sendPost - {}", url);
             URL realUrl = new URL(url);
+            if (isUnsafeHost(realUrl.getHost())) {
+                log.error("拒绝访问内网地址: {}", realUrl.getHost());
+                throw new RuntimeException("不允许访问内网地址");
+            }
             URLConnection conn = realUrl.openConnection();
             conn.setRequestProperty("accept", "*/*");
             conn.setRequestProperty("connection", "Keep-Alive");
@@ -212,13 +235,19 @@ public class HttpUtils
     {
         StringBuilder result = new StringBuilder();
         String urlNameString = url + "?" + param;
+        BufferedReader br = null;
+        HttpsURLConnection conn = null;
         try
         {
             log.info("sendSSLPost - {}", urlNameString);
-            SSLContext sc = SSLContext.getInstance("SSL");
-            sc.init(null, new TrustManager[] { new TrustAnyTrustManager() }, new java.security.SecureRandom());
             URL console = new URL(urlNameString);
-            HttpsURLConnection conn = (HttpsURLConnection) console.openConnection();
+            if (isUnsafeHost(console.getHost())) {
+                log.error("拒绝访问内网地址: {}", console.getHost());
+                throw new RuntimeException("不允许访问内网地址");
+            }
+            conn = (HttpsURLConnection) console.openConnection();
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
             conn.setRequestProperty("accept", "*/*");
             conn.setRequestProperty("connection", "Keep-Alive");
             conn.setRequestProperty("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
@@ -227,11 +256,9 @@ public class HttpUtils
             conn.setDoOutput(true);
             conn.setDoInput(true);
 
-            conn.setSSLSocketFactory(sc.getSocketFactory());
-            conn.setHostnameVerifier(new TrustAnyHostnameVerifier());
             conn.connect();
             InputStream is = conn.getInputStream();
-            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            br = new BufferedReader(new InputStreamReader(is));
             String ret = "";
             while ((ret = br.readLine()) != null)
             {
@@ -240,9 +267,7 @@ public class HttpUtils
                     result.append(new String(ret.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8));
                 }
             }
-            log.info("recv - response received, length={}", result != null ? result.length() : 0);
-            conn.disconnect();
-            br.close();
+            log.info("recv - response received, length={}", result.length());
         }
         catch (ConnectException e)
         {
@@ -260,34 +285,18 @@ public class HttpUtils
         {
             log.error("调用HttpsUtil.sendSSLPost Exception, url=" + url + ",param=" + param, e);
         }
+        finally
+        {
+            if (br != null)
+            {
+                try { br.close(); } catch (IOException e) { log.error("br.close Exception", e); }
+            }
+            if (conn != null)
+            {
+                conn.disconnect();
+            }
+        }
         return result.toString();
     }
 
-    private static class TrustAnyTrustManager implements X509TrustManager
-    {
-        @Override
-        public void checkClientTrusted(X509Certificate[] chain, String authType)
-        {
-        }
-
-        @Override
-        public void checkServerTrusted(X509Certificate[] chain, String authType)
-        {
-        }
-
-        @Override
-        public X509Certificate[] getAcceptedIssuers()
-        {
-            return new X509Certificate[] {};
-        }
-    }
-
-    private static class TrustAnyHostnameVerifier implements HostnameVerifier
-    {
-        @Override
-        public boolean verify(String hostname, SSLSession session)
-        {
-            return true;
-        }
-    }
 }

@@ -1,6 +1,7 @@
 package com.lcyl.code.mapper;
 
 import com.lcyl.code.domain.ElderLeaveApproveRecord;
+import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
@@ -10,6 +11,8 @@ import java.util.List;
  * @author cch
  * @date 2026-03-24
  */
+
+@Mapper
 public interface ElderLeaveApproveRecordMapper 
 {
     /**

@@ -45,9 +45,15 @@ function copyTextToClipboard(input: string, { target = document.body }: { target
   element.selectionEnd = input.length
 
   let isSuccess = false
-  try {
-    isSuccess = document.execCommand('copy')
-  } catch { }
+  // 优先使用现代 Clipboard API
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(input).then(() => {}).catch(() => {})
+    isSuccess = true
+  } else {
+    try {
+      isSuccess = document.execCommand('copy')
+    } catch { }
+  }
 
   element.remove()
 

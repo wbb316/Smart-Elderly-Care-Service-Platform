@@ -33,7 +33,6 @@ Page({
             const resultData = res.data.data || {};
             app.globalData.token = resultData.token;
             app.globalData.userName = resultData.name;
-            app.globalData.isLoggedIn = true;
             wx.setStorageSync('token', resultData.token);
 
             wx.showToast({
@@ -68,12 +67,7 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
-    const token = wx.getStorageSync('token')
-    if (token) {
-      app.globalData.token = token
-      app.globalData.isLoggedIn = true
-      wx.switchTab({ url: '/pages/home/home' })
-    }
+    // 必须在当前会话授权登录，不走自动跳转
   },
 
   /**

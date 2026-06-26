@@ -52,9 +52,9 @@ public interface ElderMapper
     public int updateElder(Elder elder);
 
     /**
-     * 更新老人床位ID（按姓名匹配）
+     * 更新老人床位ID（按老人ID匹配）
      */
-    public int updateBedId(@Param("bedId") Long bedId, @Param("name") String name);
+    public int updateBedId(@Param("bedId") Long bedId, @Param("elderId") Long elderId);
 
     /**
      * 更新老人状态

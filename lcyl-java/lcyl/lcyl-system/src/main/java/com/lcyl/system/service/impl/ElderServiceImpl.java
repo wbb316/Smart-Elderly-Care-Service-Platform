@@ -73,6 +73,13 @@ public class ElderServiceImpl implements IElderService
     }
 
     @Override
+    @Transactional
+    public int insertInfo(AddInfo addInfo, Long memberId)
+    {
+        return elderMapper.insertInfo(addInfo, memberId);
+    }
+
+    @Override
     public List<BedVO> getElderBedList()
     {
         Long memberId = UserThreadLocal.getUserId();

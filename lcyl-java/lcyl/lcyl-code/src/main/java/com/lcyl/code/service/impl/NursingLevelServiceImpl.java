@@ -5,6 +5,7 @@ import java.util.List;
 import com.lcyl.code.domain.LcNursingLevel;
 import com.lcyl.code.domain.Nurse;
 import com.lcyl.code.utils.NurseUtils;
+import com.lcyl.common.exception.ServiceException;
 import com.lcyl.common.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,9 @@ public class NursingLevelServiceImpl implements INursingLevelService
 {
     @Autowired
     private LcNursingLevelMapper lcNursingLevelMapper;
+
+    @Autowired
+    private NurseUtils nurseUtils;
 
     /**
      * 查询护理等级
@@ -57,7 +61,10 @@ public class NursingLevelServiceImpl implements INursingLevelService
     public int insertNursingLevel(LcNursingLevel lcNursingLevel)
     {
         // 1. 获取当前登录的护理员
-        Nurse currentNurse = NurseUtils.getCurrentNurse();
+        Nurse currentNurse = nurseUtils.getCurrentNurse();
+        if (currentNurse == null) {
+            throw new ServiceException("未获取到当前护理员信息");
+        }
 
         // 2. 自动填充创建人ID和姓名
         lcNursingLevel.setCreatorId(currentNurse.getId());

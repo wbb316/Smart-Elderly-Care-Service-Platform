@@ -94,7 +94,11 @@ function change(val: SearchItem): void {
     window.open(path.substr(pindex, path.length), "_blank")
   } else {
     if (query) {
-      router.push({ path: path, query: JSON.parse(query) })
+      try {
+        router.push({ path: path, query: JSON.parse(query) })
+      } catch {
+        router.push({ path: path })
+      }
     } else {
       router.push(path)
     }

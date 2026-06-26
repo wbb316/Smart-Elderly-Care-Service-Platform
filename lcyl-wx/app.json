@@ -68,6 +68,7 @@
       "pages": [
         "pages/addfamily/addfamily",
         "pages/mybill/mybill",
+        "pages/healthData/healthData",
         "pages/leave/list/list",
         "pages/leave/apply/apply",
         "pages/leave/detail/detail"

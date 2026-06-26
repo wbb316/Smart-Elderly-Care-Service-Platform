@@ -389,11 +389,13 @@ const handleSubmit = () => {
       }
     }
     completeTask(dto).then(resp=>{
+      ElMessage.success('审批提交成功！')
       router.push({
         path: '/retreat/checkout',
       });
+    }).catch(() => {
+      ElMessage.error('审批提交失败')
     })
-    ElMessage.success('审批提交成功！')
   }).catch(() => {
     ElMessage.info('已取消提交')
   })

@@ -3,14 +3,19 @@ package com.lcyl.web.controller.monitor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +36,8 @@ import com.lcyl.system.domain.SysCache;
 @RequestMapping("/monitor/cache")
 public class CacheController
 {
+    private static final Logger log = LoggerFactory.getLogger(CacheController.class);
+
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
@@ -76,15 +83,15 @@ public class CacheController
         return AjaxResult.success(caches);
     }
 
-    @PreAuthorize("@ss.hasPermi('monitor:cache:list')")
+    @PreAuthorize("@ss.hasRole('admin')")
     @GetMapping("/getKeys/{cacheName}")
     public AjaxResult getCacheKeys(@PathVariable String cacheName)
     {
-        Set<String> cacheKeys = redisTemplate.keys(cacheName + "*");
+        Set<String> cacheKeys = scanKeys(cacheName + "*");
         return AjaxResult.success(new TreeSet<>(cacheKeys));
     }
 
-    @PreAuthorize("@ss.hasPermi('monitor:cache:list')")
+    @PreAuthorize("@ss.hasRole('admin')")
     @GetMapping("/getValue/{cacheName}/{cacheKey}")
     public AjaxResult getCacheValue(@PathVariable String cacheName, @PathVariable String cacheKey)
     {
@@ -97,8 +104,10 @@ public class CacheController
     @DeleteMapping("/clearCacheName/{cacheName}")
     public AjaxResult clearCacheName(@PathVariable String cacheName)
     {
-        Collection<String> cacheKeys = redisTemplate.keys(cacheName + "*");
-        redisTemplate.delete(cacheKeys);
+        Collection<String> cacheKeys = scanKeys(cacheName + "*");
+        if (!cacheKeys.isEmpty()) {
+            redisTemplate.delete(cacheKeys);
+        }
         return AjaxResult.success();
     }
 
@@ -114,8 +123,28 @@ public class CacheController
     @DeleteMapping("/clearCacheAll")
     public AjaxResult clearCacheAll()
     {
-        Collection<String> cacheKeys = redisTemplate.keys("*");
-        redisTemplate.delete(cacheKeys);
+        Collection<String> cacheKeys = scanKeys("*");
+        if (!cacheKeys.isEmpty()) {
+            redisTemplate.delete(cacheKeys);
+        }
         return AjaxResult.success();
+    }
+
+    /**
+     * 使用 SCAN 命令安全扫描 Redis key，避免 KEYS * 阻塞 Redis
+     */
+    private Set<String> scanKeys(String pattern) {
+        return redisTemplate.execute((RedisCallback<Set<String>>) connection -> {
+            Set<String> keys = new HashSet<>();
+            try (Cursor<byte[]> cursor = connection.scan(ScanOptions.scanOptions()
+                    .match(pattern).count(1000).build())) {
+                while (cursor.hasNext()) {
+                    keys.add(new String(cursor.next()));
+                }
+            } catch (Exception e) {
+                log.error("Redis scan 失败, pattern: {}", pattern, e);
+            }
+            return keys;
+        });
     }
 }

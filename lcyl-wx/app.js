@@ -3,14 +3,12 @@ App({
   globalData: {
     baseUrl: 'http://localhost:8080',
     token: '',
-    userName: null,
-    isLoggedIn: false  // 只有当前会话登录成功后才是 true
+    userName: null
   },
   onLaunch: function () {
     const token = wx.getStorageSync('token')
     if (token) {
       this.globalData.token = token
-      this.globalData.isLoggedIn = true
     }
   },
 

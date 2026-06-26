@@ -414,7 +414,7 @@ function handleRun(row: SysJob) {
     return runJob(row.jobId!, row.jobGroup!)
   }).then(() => {
     proxy.$modal.msgSuccess("执行成功")
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 
 /** 任务详细信息 */
@@ -489,7 +489,7 @@ function handleDelete(row?: SysJob) {
   }).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
-  }).catch(() => {})
+  }).catch((e) => { console.error(e) })
 }
 
 /** 导出按钮操作 */
