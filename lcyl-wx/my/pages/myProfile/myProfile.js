@@ -126,12 +126,15 @@ Page({
         try {
           result = JSON.parse(uploadRes.data)
         } catch (e) {
+          wx.hideLoading()
           wx.showToast({
             title: '上传返回格式错误',
             icon: 'none'
           })
           return
         }
+
+        wx.hideLoading()
 
         if (result.code === 200) {
           this.setData({
@@ -150,6 +153,7 @@ Page({
         }
       },
       fail: (err) => {
+        wx.hideLoading()
         wx.showToast({
           title: '上传失败',
           icon: 'none'
@@ -159,7 +163,6 @@ Page({
         this.setData({
           uploading: false
         })
-        wx.hideLoading()
       }
     })
   },
@@ -221,6 +224,8 @@ Page({
     }).then((res) => {
       const result = res.data || {}
 
+      wx.hideLoading()
+
       if (result.code === 200) {
         wx.setStorageSync('userInfo', {
           name: name.trim(),
@@ -245,6 +250,7 @@ Page({
         })
       }
     }).catch((err) => {
+      wx.hideLoading()
       wx.showToast({
         title: '网络异常',
         icon: 'none'
@@ -253,7 +259,6 @@ Page({
       this.setData({
         saving: false
       })
-      wx.hideLoading()
     })
   }
 })
