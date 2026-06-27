@@ -422,6 +422,29 @@ public class WxLoginController extends BaseController {
     }
 
     /**
+     * AI 工具确认执行
+     */
+    @PostMapping("/ai/confirm")
+    public AjaxResult aiConfirm(@RequestBody Map<String, String> body) {
+        String sessionId = body.get("sessionId");
+        if (com.lcyl.common.utils.StringUtils.isEmpty(sessionId)) {
+            return AjaxResult.error("会话ID不能为空");
+        }
+        String reply = aiService.executeConfirmed(sessionId);
+        return AjaxResult.success(reply);
+    }
+
+    /**
+     * AI 工具取消执行
+     */
+    @PostMapping("/ai/cancel")
+    public AjaxResult aiCancel(@RequestBody Map<String, String> body) {
+        String sessionId = body.get("sessionId");
+        aiService.clearPendingConfirm(sessionId);
+        return AjaxResult.success("已取消操作");
+    }
+
+    /**
      * 校验老人是否属于当前登录的家属
      */
     private void checkElderBelongsToMember(Long elderId) {
