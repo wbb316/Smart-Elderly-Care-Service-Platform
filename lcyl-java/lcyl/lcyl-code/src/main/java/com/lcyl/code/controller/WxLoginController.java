@@ -418,6 +418,9 @@ public class WxLoginController extends BaseController {
             sessionId = "member_" + memberId + "_" + new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
         }
         String reply = aiService.ask(question, memberId, sessionId);
+        log.info("Controller 收到 reply 内容: length={}, text={}",
+            reply != null ? reply.length() : 0,
+            reply != null && reply.length() > 100 ? reply.substring(0, 100) + "..." : reply);
         return AjaxResult.success(reply);
     }
 
