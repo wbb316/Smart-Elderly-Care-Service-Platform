@@ -9,6 +9,11 @@
         <text class="dot">.</text><text class="dot">.</text><text class="dot">.</text>
       </view>
     </view>
+
+    <view wx:if="{{item.needsConfirm}}" class="confirm-bar" wx:for="{{messages}}" wx:for-index="">
+      <button class="confirm-btn" bindtap="confirmAction" disabled="{{loading}}">确认执行</button>
+      <button class="cancel-btn" bindtap="cancelAction" disabled="{{loading}}">取消</button>
+    </view>
   </scroll-view>
 
   <view class="input-bar">

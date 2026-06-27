@@ -47,10 +47,21 @@ Page({
         }
       }).then((res) => {
         if (res.data && res.data.code === 200) {
-          const reply = res.data.data || '抱歉，我没有理解您的意思 😅';
-          this.setData({
-            messages: [...this.data.messages, { role: 'assistant', content: reply }]
-          });
+          const data = res.data.data || '';
+          if (typeof data === 'string' && data.indexOf('[CONFIRM]') === 0) {
+            const confirmInfo = data.replace('[CONFIRM]', '');
+            this.setData({
+              messages: [...this.data.messages, {
+                role: 'assistant',
+                content: confirmInfo,
+                needsConfirm: true
+              }]
+            });
+          } else {
+            this.setData({
+              messages: [...this.data.messages, { role: 'assistant', content: data }]
+            });
+          }
         } else {
           this.setData({
             messages: [...this.data.messages, { role: 'assistant', content: res.data.msg || '服务出错了，请稍后再试' }]
@@ -65,6 +76,60 @@ Page({
         this.scrollToBottom();
       });
     }).catch(() => {});
+  },
+
+  confirmAction() {
+    const msgs = this.data.messages;
+    const lastMsg = msgs[msgs.length - 1];
+    if (!lastMsg || !lastMsg.needsConfirm) return;
+
+    this.setData({ loading: true });
+
+    const app = getApp();
+    wx.request({
+      url: 'http://localhost:8080/wxLogin/ai/confirm',
+      method: 'POST',
+      data: { sessionId: this.data.sessionId },
+      header: { 'Authorization': app.globalData.token || wx.getStorageSync('token') },
+      success: (res) => {
+        if (res.data && res.data.code === 200) {
+          const messages = [...this.data.messages];
+          messages[messages.length - 1] = {
+            role: 'assistant',
+            content: res.data.data || '操作完成'
+          };
+          this.setData({ messages });
+        } else {
+          wx.showToast({ title: res.data.msg || '操作失败', icon: 'none' });
+        }
+      },
+      fail: () => {
+        wx.showToast({ title: '网络异常', icon: 'none' });
+      },
+      complete: () => {
+        this.setData({ loading: false });
+        this.scrollToBottom();
+      }
+    });
+  },
+
+  cancelAction() {
+    const app = getApp();
+    wx.request({
+      url: 'http://localhost:8080/wxLogin/ai/cancel',
+      method: 'POST',
+      data: { sessionId: this.data.sessionId },
+      header: { 'Authorization': app.globalData.token || wx.getStorageSync('token') },
+      success: () => {
+        const messages = [...this.data.messages];
+        const lastMsg = messages[messages.length - 1];
+        messages[messages.length - 1] = {
+          role: 'assistant',
+          content: (lastMsg ? lastMsg.content : '') + '\n\n（已取消）'
+        };
+        this.setData({ messages });
+      }
+    });
   },
 
   scrollToBottom() {
