@@ -46,6 +46,7 @@ Page({
           sessionId: this.data.sessionId
         }
       }).then((res) => {
+        console.log('完整响应:', JSON.stringify(res));
         if (res.data && res.data.code === 200) {
           const data = res.data.data || '';
           if (typeof data === 'string' && data.indexOf('[CONFIRM]') === 0) {
