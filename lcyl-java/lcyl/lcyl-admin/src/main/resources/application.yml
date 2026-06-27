@@ -158,4 +158,11 @@ aliyun:
       prefix: lcyl/images/ # 上传文件夹路径前缀
       datePattern: yyyyMMdd # 上传文件夹路径中日期子文件夹的格式
 
+# AI
+deepseek:
+  api-key: ${DEEPSEEK_API_KEY}
+  model: deepseek-chat
+  temperature: 0.3
+  max-tokens: 1000
+
 
