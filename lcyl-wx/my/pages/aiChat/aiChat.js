@@ -58,8 +58,12 @@ Page({
               }]
             });
           } else {
+            console.log('AI 回复内容:', data);
+            console.log('消息列表长度:', this.data.messages.length);
             this.setData({
               messages: [...this.data.messages, { role: 'assistant', content: data }]
+            }, () => {
+              console.log('setData 完成, 消息数:', this.data.messages.length);
             });
           }
         } else {
