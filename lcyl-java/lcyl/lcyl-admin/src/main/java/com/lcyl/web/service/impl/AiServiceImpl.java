@@ -95,6 +95,7 @@ public class AiServiceImpl implements AiService {
             // 5. 构建 tools 并调 DeepSeek
             JSONArray tools = buildTools();
             String rawResponse = callDeepSeek(messages, tools);
+            log.info("DeepSeek 原始响应(前500字): {}", rawResponse.length() > 500 ? rawResponse.substring(0, 500) : rawResponse);
             JSONObject jsonObj = JSON.parseObject(rawResponse);
             JSONObject messageObj = jsonObj.getJSONArray("choices")
                                            .getJSONObject(0)
@@ -102,6 +103,10 @@ public class AiServiceImpl implements AiService {
 
             // 6. 检查 tool_calls
             JSONArray toolCalls = messageObj.getJSONArray("tool_calls");
+            log.info("DeepSeek 响应: content={}, tool_calls={}",
+                messageObj.getString("content") != null ? "有" : "null",
+                toolCalls != null && !toolCalls.isEmpty() ? "有(" + toolCalls.size() + "个)" : "无");
+
             if (toolCalls != null && !toolCalls.isEmpty()) {
                 return handleToolCalls(toolCalls, messages, sessionId, memberId);
             }
@@ -174,6 +179,7 @@ public class AiServiceImpl implements AiService {
      */
     private String handleToolCalls(JSONArray toolCalls, List<Map<String, Object>> messages,
                                     String sessionId, Long memberId) throws Exception {
+        log.info("进入 handleToolCalls, 共 {} 个 tool_calls", toolCalls.size());
         JSONObject firstCall = toolCalls.getJSONObject(0);
         String toolCallId = firstCall.getString("id");
         JSONObject function = firstCall.getJSONObject("function");
