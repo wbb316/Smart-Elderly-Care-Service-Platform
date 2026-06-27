@@ -34,6 +34,7 @@ import com.lcyl.code.mapper.NursingTaskMapper;
 import com.lcyl.code.mapper.ServiceOrderMapper;
 import com.lcyl.code.mapper.ServiceOrderRefundMapper;
 import com.lcyl.system.mapper.LcRoomTypeMapper;
+import com.lcyl.code.service.ILcReservationService;
 import com.lcyl.code.service.INursingItemService;
 import com.lcyl.code.service.IServiceOrderService;
 import com.lcyl.code.service.WxLoginService;
@@ -111,6 +112,9 @@ public class WxLoginServiceImpl implements WxLoginService
 
     @Autowired
     private IServiceOrderService serviceOrderService;
+
+    @Autowired
+    private ILcReservationService lcReservationService;
 
     @Override
     public LoginVo getAccessToken(UserLoginRequestDto userLoginRequestDto)
@@ -643,6 +647,12 @@ public class WxLoginServiceImpl implements WxLoginService
             throw new ServiceException("预定失败，请稍后重试");
         }
         return booking;
+    }
+
+    @Override
+    public int deleteVisit(Long id, Boolean force)
+    {
+        return lcReservationService.deleteReservationById(id, force);
     }
 
     @Override

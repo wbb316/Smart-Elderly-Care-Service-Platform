@@ -56,6 +56,8 @@ public interface WxLoginService {
 
     int applyRefund(WxRefundApplyDTO dto);
 
+    int deleteVisit(Long id, Boolean force);
+
     RoomBooking createRoomBooking(RoomBookingDTO dto);
 
     int payRoomBooking(Long id);
