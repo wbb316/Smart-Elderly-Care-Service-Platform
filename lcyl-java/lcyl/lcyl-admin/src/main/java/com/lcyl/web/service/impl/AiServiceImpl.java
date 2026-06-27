@@ -137,7 +137,11 @@ public class AiServiceImpl implements AiService {
         String toolName = (String) pendingInfo.get("toolName");
         @SuppressWarnings("unchecked")
         Map<String, Object> args = (Map<String, Object>) pendingInfo.get("args");
-        Long memberId = (Long) pendingInfo.get("memberId");
+        Object memberIdObj = pendingInfo.get("memberId");
+        Long memberId = memberIdObj instanceof Number ? ((Number) memberIdObj).longValue() : null;
+        if (memberId == null) {
+            return "用户信息异常，请重新操作";
+        }
 
         // 清除 pending 记录
         redisCache.deleteObject(pendingKey);
@@ -170,8 +174,12 @@ public class AiServiceImpl implements AiService {
                                     String sessionId, Long memberId) throws Exception {
         JSONObject firstCall = toolCalls.getJSONObject(0);
         String toolCallId = firstCall.getString("id");
-        String toolName = firstCall.getJSONObject("function").getString("name");
-        String argsStr = firstCall.getJSONObject("function").getString("arguments");
+        JSONObject function = firstCall.getJSONObject("function");
+        if (function == null) {
+            return "AI 响应格式异常，请重试";
+        }
+        String toolName = function.getString("name");
+        String argsStr = function.getString("arguments");
 
         // 解析参数
         Map<String, Object> args = new HashMap<String, Object>();
@@ -655,25 +663,4 @@ public class AiServiceImpl implements AiService {
 
     // ==================== 工具方法 ====================
 
-    private String extractReply(String json) {
-        try {
-            JSONObject obj = JSON.parseObject(json);
-            return obj.getJSONArray("choices")
-                     .getJSONObject(0)
-                     .getJSONObject("message")
-                     .getString("content");
-        } catch (Exception e) {
-            log.error("解析 DeepSeek 响应失败: {}", json, e);
-            return null;
-        }
-    }
-
-    private String escapeJson(String s) {
-        if (s == null) return "";
-        return s.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
-    }
 }
