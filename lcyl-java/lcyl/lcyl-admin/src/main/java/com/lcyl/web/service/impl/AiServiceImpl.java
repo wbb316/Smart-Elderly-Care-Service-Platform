@@ -108,7 +108,9 @@ public class AiServiceImpl implements AiService {
 
             // 7. 正常文本回复
             String reply = messageObj.getString("content");
-            if (reply == null) reply = "";
+            if (reply == null || reply.trim().isEmpty()) {
+                reply = "你好呀！我是小乐，你的智能助手 😊\n有什么可以帮助你的吗？";
+            }
 
             Map<String, Object> asstMsg = new HashMap<String, Object>();
             asstMsg.put("role", "assistant");
