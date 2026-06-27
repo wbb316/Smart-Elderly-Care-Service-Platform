@@ -1,5 +1,9 @@
 package com.lcyl.web.service.impl;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.JSONWriter;
 import com.lcyl.code.domain.Bill;
 import com.lcyl.code.domain.Member;
 import com.lcyl.code.domain.ServiceOrder;
@@ -41,6 +45,7 @@ public class AiServiceImpl implements AiService {
     @Autowired private ServiceOrderMapper serviceOrderMapper;
     @Autowired private ContractMapper contractMapper;
     @Autowired private ElderLeaveMapper elderLeaveMapper;
+    @Autowired private ToolExecutor toolExecutor;
 
     @Value("${deepseek.api-key}")       private String apiKey;
     @Value("${deepseek.model}")         private String model;
@@ -49,7 +54,11 @@ public class AiServiceImpl implements AiService {
 
     private static final String DEEPSEEK_URL = "https://api.deepseek.com/chat/completions";
     private static final String SESSION_PREFIX = "ai:session:";
+    private static final String PENDING_PREFIX = "ai:pending:";
     private static final int SESSION_TTL = 1800;
+    private static final int PENDING_TTL = 120;
+
+    // ==================== 主入口 ====================
 
     @Override
     public String ask(String question, Long memberId, String sessionId) {
@@ -70,24 +79,38 @@ public class AiServiceImpl implements AiService {
             String systemPrompt = buildSystemPrompt(userContext, billData, orderData, contractData, leaveData);
 
             // 4. 获取/初始化消息列表
-            List<Map<String, String>> messages = getHistory(sessionId);
+            List<Map<String, Object>> messages = getHistory(sessionId);
             if (messages.isEmpty()) {
-                Map<String, String> sysMsg = new HashMap<>();
+                Map<String, Object> sysMsg = new HashMap<String, Object>();
                 sysMsg.put("role", "system");
                 sysMsg.put("content", systemPrompt);
                 messages.add(sysMsg);
             }
 
-            Map<String, String> userMsg = new HashMap<>();
+            Map<String, Object> userMsg = new HashMap<String, Object>();
             userMsg.put("role", "user");
             userMsg.put("content", question);
             messages.add(userMsg);
 
-            // 5. 调 DeepSeek
-            String reply = callDeepSeek(messages);
+            // 5. 构建 tools 并调 DeepSeek
+            JSONArray tools = buildTools();
+            String rawResponse = callDeepSeek(messages, tools);
+            JSONObject jsonObj = JSON.parseObject(rawResponse);
+            JSONObject messageObj = jsonObj.getJSONArray("choices")
+                                           .getJSONObject(0)
+                                           .getJSONObject("message");
 
-            // 6. 存历史
-            Map<String, String> asstMsg = new HashMap<>();
+            // 6. 检查 tool_calls
+            JSONArray toolCalls = messageObj.getJSONArray("tool_calls");
+            if (toolCalls != null && !toolCalls.isEmpty()) {
+                return handleToolCalls(toolCalls, messages, sessionId, memberId);
+            }
+
+            // 7. 正常文本回复
+            String reply = messageObj.getString("content");
+            if (reply == null) reply = "";
+
+            Map<String, Object> asstMsg = new HashMap<String, Object>();
             asstMsg.put("role", "assistant");
             asstMsg.put("content", reply);
             messages.add(asstMsg);
@@ -98,6 +121,253 @@ public class AiServiceImpl implements AiService {
             log.error("AI 助手请求失败", e);
             return "抱歉，我现在有点忙不过来，请稍后再试试吧 😊";
         }
+    }
+
+    // ==================== 确认执行相关 ====================
+
+    @Override
+    public String executeConfirmed(String sessionId) {
+        String pendingKey = PENDING_PREFIX + sessionId;
+        @SuppressWarnings("unchecked")
+        Map<String, Object> pendingInfo = (Map<String, Object>) redisCache.getCacheObject(pendingKey);
+        if (pendingInfo == null) {
+            return "操作已过期，请重新发起";
+        }
+
+        String toolName = (String) pendingInfo.get("toolName");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> args = (Map<String, Object>) pendingInfo.get("args");
+        Long memberId = (Long) pendingInfo.get("memberId");
+
+        // 清除 pending 记录
+        redisCache.deleteObject(pendingKey);
+
+        try {
+            Object result = toolExecutor.execute(toolName, args, memberId);
+            return result != null ? result.toString() : "操作完成";
+        } catch (Exception e) {
+            log.error("执行确认操作失败: toolName={}", toolName, e);
+            return "操作执行失败：" + e.getMessage();
+        }
+    }
+
+    @Override
+    public void clearPendingConfirm(String sessionId) {
+        redisCache.deleteObject(PENDING_PREFIX + sessionId);
+    }
+
+    @Override
+    public boolean hasPendingConfirm(String sessionId) {
+        return redisCache.getCacheObject(PENDING_PREFIX + sessionId) != null;
+    }
+
+    // ==================== Function Calling ====================
+
+    /**
+     * 处理 DeepSeek 返回的 tool_calls
+     */
+    private String handleToolCalls(JSONArray toolCalls, List<Map<String, Object>> messages,
+                                    String sessionId, Long memberId) throws Exception {
+        JSONObject firstCall = toolCalls.getJSONObject(0);
+        String toolCallId = firstCall.getString("id");
+        String toolName = firstCall.getJSONObject("function").getString("name");
+        String argsStr = firstCall.getJSONObject("function").getString("arguments");
+
+        // 解析参数
+        Map<String, Object> args = new HashMap<String, Object>();
+        if (argsStr != null && !argsStr.isEmpty()) {
+            JSONObject argsJson = JSON.parseObject(argsStr);
+            if (argsJson != null) {
+                for (String key : argsJson.keySet()) {
+                    args.put(key, argsJson.get(key));
+                }
+            }
+        }
+
+        // 添加 assistant 消息（含 tool_calls）到历史
+        Map<String, Object> asstMsg = new HashMap<String, Object>();
+        asstMsg.put("role", "assistant");
+        asstMsg.put("tool_calls", toolCalls);
+        messages.add(asstMsg);
+
+        if (toolExecutor.needsConfirm(toolName)) {
+            // ---- 需要用户确认 ----
+            String pendingKey = PENDING_PREFIX + sessionId;
+            Map<String, Object> pendingInfo = new HashMap<String, Object>();
+            pendingInfo.put("toolName", toolName);
+            pendingInfo.put("args", args);
+            pendingInfo.put("memberId", memberId);
+            pendingInfo.put("toolCallId", toolCallId);
+            redisCache.setCacheObject(pendingKey, pendingInfo, PENDING_TTL, TimeUnit.SECONDS);
+
+            // 移除刚添加的 assistant 消息（操作尚未确认，暂不记入历史）
+            messages.remove(messages.size() - 1);
+
+            return buildConfirmSummary(toolName, args);
+        } else {
+            // ---- 直接执行 ----
+            Object result = toolExecutor.execute(toolName, args, memberId);
+            String resultStr = result != null ? result.toString() : "操作完成";
+
+            // 添加 tool 结果消息
+            Map<String, Object> toolMsg = new HashMap<String, Object>();
+            toolMsg.put("role", "tool");
+            toolMsg.put("tool_call_id", toolCallId);
+            toolMsg.put("content", resultStr);
+            messages.add(toolMsg);
+
+            // 再次调用 DeepSeek（不带 tools），获取自然语言回复
+            String secondRaw = callDeepSeek(messages, null);
+            JSONObject secondJson = JSON.parseObject(secondRaw);
+            JSONObject secondMsg = secondJson.getJSONArray("choices")
+                                             .getJSONObject(0)
+                                             .getJSONObject("message");
+            String reply = secondMsg.getString("content");
+            if (reply == null) reply = "";
+
+            // 添加最终 assistant 回复
+            Map<String, Object> finalAsst = new HashMap<String, Object>();
+            finalAsst.put("role", "assistant");
+            finalAsst.put("content", reply);
+            messages.add(finalAsst);
+            saveHistory(sessionId, messages);
+
+            return reply;
+        }
+    }
+
+    /**
+     * 构建 4 个工具的 JSON 定义
+     */
+    private JSONArray buildTools() {
+        JSONArray tools = new JSONArray();
+
+        // ---- cancelOrder ----
+        {
+            JSONObject tool = new JSONObject();
+            tool.put("type", "function");
+            JSONObject func = new JSONObject();
+            func.put("name", "cancelOrder");
+            func.put("description", "取消服务订单");
+            JSONObject params = new JSONObject();
+            params.put("type", "object");
+            JSONObject props = new JSONObject();
+            JSONObject orderIdProp = new JSONObject();
+            orderIdProp.put("type", "integer");
+            orderIdProp.put("description", "订单ID");
+            props.put("orderId", orderIdProp);
+            params.put("properties", props);
+            JSONArray required = new JSONArray();
+            required.add("orderId");
+            params.put("required", required);
+            func.put("parameters", params);
+            tool.put("function", func);
+            tools.add(tool);
+        }
+
+        // ---- applyRefund ----
+        {
+            JSONObject tool = new JSONObject();
+            tool.put("type", "function");
+            JSONObject func = new JSONObject();
+            func.put("name", "applyRefund");
+            func.put("description", "申请退款");
+            JSONObject params = new JSONObject();
+            params.put("type", "object");
+            JSONObject props = new JSONObject();
+            JSONObject orderIdProp = new JSONObject();
+            orderIdProp.put("type", "integer");
+            orderIdProp.put("description", "订单ID");
+            props.put("orderId", orderIdProp);
+            JSONObject reasonProp = new JSONObject();
+            reasonProp.put("type", "string");
+            reasonProp.put("description", "退款原因");
+            props.put("reason", reasonProp);
+            params.put("properties", props);
+            JSONArray required = new JSONArray();
+            required.add("orderId");
+            params.put("required", required);
+            func.put("parameters", params);
+            tool.put("function", func);
+            tools.add(tool);
+        }
+
+        // ---- cancelVisit ----
+        {
+            JSONObject tool = new JSONObject();
+            tool.put("type", "function");
+            JSONObject func = new JSONObject();
+            func.put("name", "cancelVisit");
+            func.put("description", "取消探访预约");
+            JSONObject params = new JSONObject();
+            params.put("type", "object");
+            JSONObject props = new JSONObject();
+            JSONObject visitIdProp = new JSONObject();
+            visitIdProp.put("type", "integer");
+            visitIdProp.put("description", "预约ID");
+            props.put("visitId", visitIdProp);
+            params.put("properties", props);
+            JSONArray required = new JSONArray();
+            required.add("visitId");
+            params.put("required", required);
+            func.put("parameters", params);
+            tool.put("function", func);
+            tools.add(tool);
+        }
+
+        // ---- resubmitLeave ----
+        {
+            JSONObject tool = new JSONObject();
+            tool.put("type", "function");
+            JSONObject func = new JSONObject();
+            func.put("name", "resubmitLeave");
+            func.put("description", "重新提交请假单");
+            JSONObject params = new JSONObject();
+            params.put("type", "object");
+            JSONObject props = new JSONObject();
+            JSONObject leaveIdProp = new JSONObject();
+            leaveIdProp.put("type", "integer");
+            leaveIdProp.put("description", "请假单ID");
+            props.put("leaveId", leaveIdProp);
+            params.put("properties", props);
+            JSONArray required = new JSONArray();
+            required.add("leaveId");
+            params.put("required", required);
+            func.put("parameters", params);
+            tool.put("function", func);
+            tools.add(tool);
+        }
+
+        return tools;
+    }
+
+    /**
+     * 构建需要用户确认的提示消息
+     */
+    private String buildConfirmSummary(String toolName, Map<String, Object> args) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[CONFIRM]");
+        switch (toolName) {
+            case "cancelOrder":
+                sb.append("确定要取消订单 #").append(args.get("orderId")).append(" 吗？");
+                break;
+            case "applyRefund":
+                sb.append("确定要为订单 #").append(args.get("orderId")).append(" 申请退款吗？");
+                Object reason = args.get("reason");
+                if (reason != null && !reason.toString().isEmpty()) {
+                    sb.append(" 退款原因：").append(reason);
+                }
+                break;
+            case "cancelVisit":
+                sb.append("确定要取消探访预约 #").append(args.get("visitId")).append(" 吗？");
+                break;
+            case "resubmitLeave":
+                sb.append("确定要重新提交请假单 #").append(args.get("leaveId")).append(" 吗？");
+                break;
+            default:
+                sb.append("确定要执行 ").append(toolName).append(" 操作吗？");
+        }
+        return sb.toString();
     }
 
     // ==================== 数据查询 ====================
@@ -118,7 +388,6 @@ public class AiServiceImpl implements AiService {
     }
 
     private String queryBills(Long memberId, String question) {
-        // 通过 elder_member 关联查名下老人的账单
         List<Elder> elders = elderMapper.selectElderByMember(memberId);
         if (elders == null || elders.isEmpty()) return "暂无";
 
@@ -126,7 +395,6 @@ public class AiServiceImpl implements AiService {
         for (Elder elder : elders) {
             Bill param = new Bill();
             param.setElderId(elder.getId());
-            // 判断是否问"本月"
             if (question.contains("本月") || question.contains("这个月")) {
                 param.setBillMonth(new SimpleDateFormat("yyyy-MM").format(new Date()));
             } else if (question.contains("上月") || question.contains("上个月")) {
@@ -200,7 +468,6 @@ public class AiServiceImpl implements AiService {
         List<Elder> elders = elderMapper.selectElderByMember(memberId);
         if (elders == null || elders.isEmpty()) return "暂无";
 
-        // 一次性查询所有请假记录，再按 elderId 过滤（ElderLeaveDto 无 elderId 字段）
         List<ElderLeaveVo> allLeaves = elderLeaveMapper.selectElderLeaveList(new ElderLeaveDto());
         if (allLeaves == null || allLeaves.isEmpty()) return "暂无请假数据";
 
@@ -282,8 +549,13 @@ public class AiServiceImpl implements AiService {
 
     // ==================== DeepSeek API 调用 ====================
 
-    private String callDeepSeek(List<Map<String, String>> messages) throws Exception {
-        List<Map<String, String>> recent = new ArrayList<>();
+    /**
+     * 调用 DeepSeek API，返回原始 JSON 响应
+     * @param messages 消息列表（支持含 tool_calls 的消息）
+     * @param tools    工具定义 JSON (null 表示不传 tools)
+     */
+    private String callDeepSeek(List<Map<String, Object>> messages, JSONArray tools) throws Exception {
+        List<Map<String, Object>> recent = new ArrayList<Map<String, Object>>();
         if (!messages.isEmpty() && "system".equals(messages.get(0).get("role"))) {
             recent.add(messages.get(0));
         }
@@ -292,7 +564,9 @@ public class AiServiceImpl implements AiService {
             recent.add(messages.get(i));
         }
 
-        String body = buildRequestBody(recent);
+        String body = buildRequestBody(recent, tools);
+        log.debug("DeepSeek request body: {}", body);
+
         URL url = new URL(DEEPSEEK_URL);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setConnectTimeout(15000);
@@ -312,33 +586,78 @@ public class AiServiceImpl implements AiService {
             String err = errStream != null ? org.apache.commons.io.IOUtils.toString(errStream, "UTF-8") : "no error body";
             log.error("DeepSeek API error: {} {}", code, err);
             conn.disconnect();
-            return "抱歉，我现在有点忙不过来，请稍后再试试吧 😊";
+            throw new RuntimeException("DeepSeek API error: " + code + " - " + err);
         }
 
         String resp = org.apache.commons.io.IOUtils.toString(conn.getInputStream(), "UTF-8");
         conn.disconnect();
-        return extractReply(resp);
+        return resp;
     }
 
-    private String buildRequestBody(List<Map<String, String>> messages) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{\"model\":\"").append(model).append("\",");
-        sb.append("\"temperature\":").append(temperature).append(",");
-        sb.append("\"max_tokens\":").append(maxTokens).append(",");
-        sb.append("\"messages\":[");
-        for (int i = 0; i < messages.size(); i++) {
-            Map<String, String> m = messages.get(i);
-            sb.append("{\"role\":\"").append(m.get("role"))
-              .append("\",\"content\":\"").append(escapeJson(m.get("content"))).append("\"}");
-            if (i < messages.size() - 1) sb.append(",");
+    /**
+     * 使用 fastjson2 构建请求体，支持 tool_calls 消息和 tools 定义
+     */
+    private String buildRequestBody(List<Map<String, Object>> messages, JSONArray tools) {
+        JSONObject body = new JSONObject();
+        body.put("model", model);
+        body.put("temperature", temperature);
+        body.put("max_tokens", maxTokens);
+
+        JSONArray msgsArray = new JSONArray();
+        for (Map<String, Object> m : messages) {
+            JSONObject msgObj = new JSONObject();
+            boolean hasToolCalls = false;
+            for (Map.Entry<String, Object> entry : m.entrySet()) {
+                String key = entry.getKey();
+                Object val = entry.getValue();
+                if ("tool_calls".equals(key) && val != null) {
+                    hasToolCalls = true;
+                }
+                if (val != null) {
+                    msgObj.put(key, val);
+                }
+            }
+            // tool_calls 消息需要显式设置 content 为 null
+            if (hasToolCalls) {
+                msgObj.put("content", (Object) null);
+            }
+            msgsArray.add(msgObj);
         }
-        sb.append("]}");
-        return sb.toString();
+        body.put("messages", msgsArray);
+
+        if (tools != null) {
+            body.put("tools", tools);
+        }
+
+        return JSON.toJSONString(body, JSONWriter.Feature.WriteNulls);
     }
+
+    // ==================== 会话管理 ====================
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> getHistory(String sessionId) {
+        Object o = redisCache.getCacheObject(SESSION_PREFIX + sessionId);
+        return o instanceof List ? (List<Map<String, Object>>) o : new ArrayList<Map<String, Object>>();
+    }
+
+    private void saveHistory(String sessionId, List<Map<String, Object>> msgs) {
+        // 保留 system + 最多 12 条（6 轮对话）
+        if (msgs.size() > 13) {
+            List<Map<String, Object>> system = msgs.subList(0, 1);
+            List<Map<String, Object>> recent = msgs.subList(msgs.size() - 12, msgs.size());
+            List<Map<String, Object>> pruned = new ArrayList<Map<String, Object>>(system);
+            pruned.addAll(recent);
+            redisCache.setCacheObject(SESSION_PREFIX + sessionId, pruned, SESSION_TTL, TimeUnit.SECONDS);
+        } else {
+            redisCache.setCacheObject(SESSION_PREFIX + sessionId, msgs, SESSION_TTL, TimeUnit.SECONDS);
+        }
+    }
+
+    // ==================== 工具方法 ====================
 
     private String extractReply(String json) {
         try {
-            com.alibaba.fastjson2.JSONObject obj = com.alibaba.fastjson2.JSON.parseObject(json);
+            JSONObject obj = JSON.parseObject(json);
             return obj.getJSONArray("choices")
                      .getJSONObject(0)
                      .getJSONObject("message")
@@ -356,26 +675,5 @@ public class AiServiceImpl implements AiService {
                 .replace("\n", "\\n")
                 .replace("\r", "\\r")
                 .replace("\t", "\\t");
-    }
-
-    // ==================== 会话管理 ====================
-
-    @SuppressWarnings("unchecked")
-    private List<Map<String, String>> getHistory(String sessionId) {
-        Object o = redisCache.getCacheObject(SESSION_PREFIX + sessionId);
-        return o instanceof List ? (List<Map<String, String>>) o : new ArrayList<>();
-    }
-
-    private void saveHistory(String sessionId, List<Map<String, String>> msgs) {
-        // 保留 system + 最多 12 条（6 轮对话）
-        if (msgs.size() > 13) {
-            List<Map<String, String>> system = msgs.subList(0, 1);
-            List<Map<String, String>> recent = msgs.subList(msgs.size() - 12, msgs.size());
-            List<Map<String, String>> pruned = new ArrayList<>(system);
-            pruned.addAll(recent);
-            redisCache.setCacheObject(SESSION_PREFIX + sessionId, pruned, SESSION_TTL, TimeUnit.SECONDS);
-        } else {
-            redisCache.setCacheObject(SESSION_PREFIX + sessionId, msgs, SESSION_TTL, TimeUnit.SECONDS);
-        }
     }
 }
