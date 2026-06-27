@@ -309,13 +309,13 @@ public class AiServiceImpl implements AiService {
         int code = conn.getResponseCode();
         if (code != 200) {
             java.io.InputStream errStream = conn.getErrorStream();
-            String err = errStream != null ? new String(errStream.readAllBytes(), StandardCharsets.UTF_8) : "no error body";
+            String err = errStream != null ? org.apache.commons.io.IOUtils.toString(errStream, "UTF-8") : "no error body";
             log.error("DeepSeek API error: {} {}", code, err);
             conn.disconnect();
             return "抱歉，我现在有点忙不过来，请稍后再试试吧 😊";
         }
 
-        String resp = new String(conn.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        String resp = org.apache.commons.io.IOUtils.toString(conn.getInputStream(), "UTF-8");
         conn.disconnect();
         return extractReply(resp);
     }
