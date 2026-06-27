@@ -1,0 +1,18 @@
+<view class="page">
+  <scroll-view class="msg-list" scroll-y scroll-with-animation upper-threshold="50" lower-threshold="50">
+    <view wx:for="{{messages}}" wx:key="index" class="msg-item {{item.role === 'user' ? 'msg-user' : 'msg-ai'}}">
+      <view class="msg-content">{{item.content}}</view>
+    </view>
+
+    <view wx:if="{{loading}}" class="msg-item msg-ai">
+      <view class="msg-content typing">
+        <text class="dot">.</text><text class="dot">.</text><text class="dot">.</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="input-bar">
+    <input class="input" placeholder="输入您的问题..." value="{{inputText}}" bindinput="onInput" disabled="{{loading}}" />
+    <button class="send-btn {{loading || !inputText.trim() ? 'disabled' : ''}}" bindtap="sendMessage">发送</button>
+  </view>
+</view>
