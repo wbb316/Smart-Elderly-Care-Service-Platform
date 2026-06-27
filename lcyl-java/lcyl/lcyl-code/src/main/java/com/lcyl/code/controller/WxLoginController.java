@@ -26,6 +26,7 @@ import com.lcyl.system.domain.dto.AddInfo;
 import com.lcyl.code.domain.dto.UserLoginRequestDto;
 import com.lcyl.common.core.domain.AjaxResult;
 import com.lcyl.common.utils.UserThreadLocal;
+import com.lcyl.web.service.AiService;
 import com.lcyl.system.domain.Elder;
 import com.lcyl.system.domain.vo.BedVO;
 import com.lcyl.system.service.BedService;
@@ -86,6 +87,8 @@ public class WxLoginController extends BaseController {
     @Autowired
     private IElderLeaveService elderLeaveService;
 
+    @Autowired
+    private AiService aiService;
 
 
 
@@ -395,6 +398,27 @@ public class WxLoginController extends BaseController {
         exist.setIsReturned(1);
         elderLeaveService.updateElderLeave(exist);
         return success("销假成功");
+    }
+
+    /**
+     * AI 智能助手 - 家属端问答
+     */
+    @PostMapping("/ai/ask")
+    public AjaxResult aiAsk(@RequestBody Map<String, String> body) {
+        String question = body.get("question");
+        if (com.lcyl.common.utils.StringUtils.isEmpty(question)) {
+            return AjaxResult.error("请输入您的问题");
+        }
+        Long memberId = UserThreadLocal.getUserId();
+        if (memberId == null) {
+            return AjaxResult.error("用户未登录");
+        }
+        String sessionId = body.get("sessionId");
+        if (com.lcyl.common.utils.StringUtils.isEmpty(sessionId)) {
+            sessionId = "member_" + memberId + "_" + new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
+        }
+        String reply = aiService.ask(question, memberId, sessionId);
+        return AjaxResult.success(reply);
     }
 
     /**
