@@ -63,6 +63,12 @@
 
     <!-- 菜单列表 -->
     <view class="card menu-card">
+      <navigator url="/my/pages/aiChat/aiChat" hover-class="none">
+        <view class="menu-item">
+          <text class="menu-text">智能助手</text>
+          <text class="menu-arrow">›</text>
+        </view>
+      </navigator>
       <navigator url="/my/pages/myApply/myApply" hover-class="none">
         <view class="menu-item">
           <text class="menu-text">我的预约</text>

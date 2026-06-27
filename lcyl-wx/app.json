@@ -86,7 +86,8 @@
         "pages/myBillDetail/myBillDetail",
         "pages/myProfile/myProfile",
         "pages/contractDetails/contractDetails",
-        "pages/myBooking/myBooking"
+        "pages/myBooking/myBooking",
+        "pages/aiChat/aiChat"
       ]
     },
     {
