@@ -421,7 +421,8 @@ public class WxLoginController extends BaseController {
         log.info("Controller 收到 reply 内容: length={}, text={}",
             reply != null ? reply.length() : 0,
             reply != null && reply.length() > 100 ? reply.substring(0, 100) + "..." : reply);
-        return AjaxResult.success(reply);
+        // 注意：必须强转 Object，否则 Java 会调用 success(String) 重载，data 字段缺失
+        return AjaxResult.success((Object) reply);
     }
 
     /**
