@@ -19,9 +19,9 @@ lcyl-vue/lcyl/      # Vue 3 管理后台前端
 
 lcyl-wx/            # 微信小程序（家属端）
   ├── pages/           # 首页、家人、服务、我的（Tab 主页面）
-  ├── home/            # 房型浏览、参观预约、探访、订单
-  ├── family/          # 家属绑定、账单、请假
-  ├── my/              # 订单、账单、合同、预约、个人资料
+  ├── home/            # 房型浏览、参观预约、探访、注册老人、订单
+  ├── family/          # 家属绑定、健康数据、账单、请假
+  ├── my/              # AI 智能助手、订单、账单、合同、预约、个人资料
   └── servicePage/     # 服务详情、下单、支付
 ```
 
@@ -48,7 +48,7 @@ lcyl-wx/            # 微信小程序（家属端）
 | 首页 | 房型浏览、参观预约、探访预约 |
 | 家人 | 绑定/解绑老人、健康数据、账单、请假 |
 | 服务 | 护理服务浏览、下单、支付 |
-| 我的 | 订单、账单、合同、预约、预定、个人资料 |
+| 我的 | AI 智能助手、订单、账单、合同、预约、预定、个人资料 |
 
 ### 微信小程序自动实现的功能
 
@@ -58,6 +58,17 @@ lcyl-wx/            # 微信小程序（家属端）
 | Token 刷新 | 页面切换时自动延长 Redis 中的 token 有效期（2 小时）|
 | 老人注册 | 家属可自助填写老人信息提交审核，后台审核通过后自动绑定 |
 | 请假流程 | 家属在线申请请假，后台 Activiti 工作流审批 |
+
+### AI 智能助手
+
+接入 DeepSeek API，家属在"我的"页面进入「智能助手」，可通过自然语言查询：
+
+- **账单查询**："我妈妈上个月花了多少钱"、"这个月账单出来了吗"
+- **订单查询**："爸爸的护理订单执行了吗"、"帮我看看订单状态"
+- **合同查询**："合同什么时候到期"、"帮我看看合同信息"
+- **请假查询**："请假申请通过了吗"、"销假了没有"
+
+后端自动识别提问意图，查询绑定的老人的对应数据，结合 DeepSeek 生成自然语言回答。支持多轮对话（Redis 缓存最近6轮对话）。
 
 ## 技术栈
 
@@ -117,17 +128,22 @@ npm run dev
 ### 5. 微信小程序
 用微信开发者工具打开 `lcyl-wx/` 目录，修改 `utils/request.js` 中的 API 地址。
 
-## OSS 配置
+## 环境变量配置
 
-支持通过环境变量注入阿里云 OSS 凭证，避免明文写入配置文件：
+| 变量名 | 用途 | 必填 |
+|--------|------|------|
+| `OSS_KEY` | 阿里云 OSS 的 AccessKeyId | 上传图片需要 |
+| `OSS_SECRET` | 阿里云 OSS 的 AccessKeySecret | 上传图片需要 |
+| `DEEPSEEK_API_KEY` | DeepSeek API 密钥 | AI 智能助手需要 |
 
 ```bash
-# Windows
+# Windows 命令行
 set OSS_KEY=your-access-key-id
 set OSS_SECRET=your-access-key-secret
+set DEEPSEEK_API_KEY=your-deepseek-api-key
 
 # IDE Run Configuration
--DOSS_KEY=your-access-key-id -DOSS_SECRET=your-access-key-secret
+-DOSS_KEY=your-access-key-id -DOSS_SECRET=your-access-key-secret -DDEEPSEEK_API_KEY=your-deepseek-api-key
 ```
 
 ## 相关文档
