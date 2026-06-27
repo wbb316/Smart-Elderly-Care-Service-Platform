@@ -308,8 +308,10 @@ public class AiServiceImpl implements AiService {
 
         int code = conn.getResponseCode();
         if (code != 200) {
-            String err = new String(conn.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
+            java.io.InputStream errStream = conn.getErrorStream();
+            String err = errStream != null ? new String(errStream.readAllBytes(), StandardCharsets.UTF_8) : "no error body";
             log.error("DeepSeek API error: {} {}", code, err);
+            conn.disconnect();
             return "抱歉，我现在有点忙不过来，请稍后再试试吧 😊";
         }
 
@@ -335,12 +337,16 @@ public class AiServiceImpl implements AiService {
     }
 
     private String extractReply(String json) {
-        String key = "\"content\":\"";
-        int start = json.indexOf(key);
-        if (start < 0) return null;
-        start += key.length();
-        int end = json.indexOf("\"", start);
-        return end > start ? json.substring(start, end).replace("\\n", "\n").replace("\\\"", "\"") : null;
+        try {
+            com.alibaba.fastjson2.JSONObject obj = com.alibaba.fastjson2.JSON.parseObject(json);
+            return obj.getJSONArray("choices")
+                     .getJSONObject(0)
+                     .getJSONObject("message")
+                     .getString("content");
+        } catch (Exception e) {
+            log.error("解析 DeepSeek 响应失败: {}", json, e);
+            return null;
+        }
     }
 
     private String escapeJson(String s) {
@@ -361,6 +367,15 @@ public class AiServiceImpl implements AiService {
     }
 
     private void saveHistory(String sessionId, List<Map<String, String>> msgs) {
-        redisCache.setCacheObject(SESSION_PREFIX + sessionId, msgs, SESSION_TTL, TimeUnit.SECONDS);
+        // 保留 system + 最多 12 条（6 轮对话）
+        if (msgs.size() > 13) {
+            List<Map<String, String>> system = msgs.subList(0, 1);
+            List<Map<String, String>> recent = msgs.subList(msgs.size() - 12, msgs.size());
+            List<Map<String, String>> pruned = new ArrayList<>(system);
+            pruned.addAll(recent);
+            redisCache.setCacheObject(SESSION_PREFIX + sessionId, pruned, SESSION_TTL, TimeUnit.SECONDS);
+        } else {
+            redisCache.setCacheObject(SESSION_PREFIX + sessionId, msgs, SESSION_TTL, TimeUnit.SECONDS);
+        }
     }
 }
