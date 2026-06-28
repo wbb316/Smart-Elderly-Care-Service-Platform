@@ -20,6 +20,7 @@ import com.lcyl.system.domain.Elder;
 import com.lcyl.system.mapper.ContractMapper;
 import com.lcyl.system.mapper.ElderMapper;
 import com.lcyl.web.service.AiService;
+import com.lcyl.web.service.constant.AiConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,11 +53,11 @@ public class AiServiceImpl implements AiService {
     @Value("${deepseek.temperature}")   private double temperature;
     @Value("${deepseek.max-tokens}")    private int maxTokens;
 
-    private static final String DEEPSEEK_URL = "https://api.deepseek.com/chat/completions";
-    private static final String SESSION_PREFIX = "ai:session:";
-    private static final String PENDING_PREFIX = "ai:pending:";
-    private static final int SESSION_TTL = 1800;
-    private static final int PENDING_TTL = 120;
+    private static final String DEEPSEEK_URL = AiConstants.DEEPSEEK_URL;
+    private static final String SESSION_PREFIX = AiConstants.SESSION_PREFIX;
+    private static final String PENDING_PREFIX = AiConstants.PENDING_PREFIX;
+    private static final int SESSION_TTL = AiConstants.SESSION_TTL;
+    private static final int PENDING_TTL = AiConstants.PENDING_TTL;
 
     // ==================== 主入口 ====================
 

@@ -11,14 +11,12 @@ import com.lcyl.code.mapper.ServiceOrderMapper;
 import com.lcyl.code.service.impl.ElderLeaveServiceImpl;
 import com.lcyl.code.service.impl.WxLoginServiceImpl;
 import com.lcyl.system.domain.Elder;
+import com.lcyl.web.service.constant.AiConstants;
 import com.lcyl.system.mapper.ElderMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,11 +33,8 @@ public class ToolExecutor {
     @Autowired private ElderLeaveMapper elderLeaveMapper;
     @Autowired private LcReservationMapper lcReservationMapper;
 
-    private static final Set<String> CONFIRM_TOOLS = Collections.unmodifiableSet(
-            new HashSet<>(Arrays.asList("cancelOrder", "applyRefund")));
-
     public boolean needsConfirm(String toolName) {
-        return CONFIRM_TOOLS.contains(toolName);
+        return AiConstants.CONFIRM_TOOLS.contains(toolName);
     }
 
     public Object execute(String toolName, Map<String, Object> args, Long memberId) {
