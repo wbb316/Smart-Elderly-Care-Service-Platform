@@ -69,6 +69,13 @@
             <artifactId>lcyl-system</artifactId>
         </dependency>
 
+        <!-- Sentinel 限流 -->
+        <dependency>
+            <groupId>com.alibaba.csp</groupId>
+            <artifactId>sentinel-spring-webmvc-adapter</artifactId>
+            <version>1.8.6</version>
+        </dependency>
+
     </dependencies>
 
 </project>

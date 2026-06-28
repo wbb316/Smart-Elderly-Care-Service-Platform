@@ -158,6 +158,13 @@ aliyun:
       prefix: lcyl/images/ # 上传文件夹路径前缀
       datePattern: yyyyMMdd # 上传文件夹路径中日期子文件夹的格式
 
+# Sentinel 限流
+sentinel:
+  transport:
+    dashboard: localhost:8088
+    port: 8719
+  eager: true
+
 # AI
 deepseek:
   api-key: ${DEEPSEEK_API_KEY}
