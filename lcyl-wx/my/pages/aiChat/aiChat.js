@@ -14,9 +14,23 @@ Page({
   onLoad() {
     const memberId = wx.getStorageSync('memberId') || '';
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    this.setData({
-      sessionId: `member_${memberId}_${today}`
-    });
+    const sessionId = `member_${memberId}_${today}`;
+    this.setData({ sessionId });
+
+    // 恢复历史消息
+    const app = getApp();
+    const token = app.globalData.token || wx.getStorageSync('token');
+    if (!token) return;
+
+    request({
+      url: '/wxLogin/ai/history',
+      method: 'GET',
+      data: { sessionId: sessionId }
+    }).then((res) => {
+      if (res.data && res.data.code === 200 && Array.isArray(res.data.data) && res.data.data.length > 0) {
+        this.setData({ messages: res.data.data });
+      }
+    }).catch(() => {});
   },
 
   onInput(e) {

@@ -657,10 +657,10 @@ public class AiServiceImpl implements AiService {
     }
 
     private void saveHistory(String sessionId, List<Map<String, Object>> msgs) {
-        // 保留 system + 最多 12 条（6 轮对话）
-        if (msgs.size() > 13) {
+        // 保留 system + 最多 60 条对话消息（30 轮）
+        if (msgs.size() > 61) {
             List<Map<String, Object>> system = msgs.subList(0, 1);
-            List<Map<String, Object>> recent = msgs.subList(msgs.size() - 12, msgs.size());
+            List<Map<String, Object>> recent = msgs.subList(msgs.size() - 60, msgs.size());
             List<Map<String, Object>> pruned = new ArrayList<Map<String, Object>>(system);
             pruned.addAll(recent);
             redisCache.setCacheObject(SESSION_PREFIX + sessionId, pruned, SESSION_TTL, TimeUnit.SECONDS);
@@ -671,4 +671,21 @@ public class AiServiceImpl implements AiService {
 
     // ==================== 工具方法 ====================
 
+
+    @Override
+    public List<Map<String, Object>> getHistoryMessages(String sessionId) {
+        List<Map<String, Object>> messages = getHistory(sessionId);
+        List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+        for (Map<String, Object> msg : messages) {
+            String role = (String) msg.get("role");
+            if ("user".equals(role) || "assistant".equals(role)) {
+                Map<String, Object> clean = new HashMap<String, Object>();
+                clean.put("role", role);
+                Object content = msg.get("content");
+                clean.put("content", content != null ? content : "");
+                result.add(clean);
+            }
+        }
+        return result;
+    }
 }

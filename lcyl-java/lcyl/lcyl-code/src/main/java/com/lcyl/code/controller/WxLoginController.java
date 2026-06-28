@@ -425,6 +425,14 @@ public class WxLoginController extends BaseController {
         return AjaxResult.success((Object) reply);
     }
 
+    @GetMapping("/ai/history")
+    public AjaxResult getHistory(@RequestParam String sessionId) {
+        if (com.lcyl.common.utils.StringUtils.isEmpty(sessionId)) {
+            return AjaxResult.success(new java.util.ArrayList<>());
+        }
+        return AjaxResult.success(aiService.getHistoryMessages(sessionId));
+    }
+
     /**
      * AI 工具确认执行
      */

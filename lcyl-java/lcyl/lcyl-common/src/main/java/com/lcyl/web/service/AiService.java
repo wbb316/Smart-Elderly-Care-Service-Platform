@@ -17,4 +17,9 @@ public interface AiService {
      * 检查是否存在待确认的操作
      */
     boolean hasPendingConfirm(String sessionId);
+
+    /**
+     * 获取历史会话消息（不含 system prompt）
+     */
+    java.util.List<java.util.Map<String, Object>> getHistoryMessages(String sessionId);
 }
