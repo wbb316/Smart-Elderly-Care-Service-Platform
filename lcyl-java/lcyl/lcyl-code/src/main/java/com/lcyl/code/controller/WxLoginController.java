@@ -24,7 +24,14 @@ import com.lcyl.system.domain.LcRoomType;
 
 import com.lcyl.system.domain.dto.AddInfo;
 import com.lcyl.code.domain.dto.UserLoginRequestDto;
+import com.lcyl.code.domain.CheckIn;
+import com.lcyl.code.domain.LcCheckinAbilityEvaluate;
+import com.lcyl.code.domain.LcCheckinHealthEvaluate;
+import com.lcyl.code.mapper.CheckInMapper;
+import com.lcyl.code.mapper.LcCheckinAbilityEvaluateMapper;
+import com.lcyl.code.mapper.LcCheckinHealthEvaluateMapper;
 import com.lcyl.common.core.domain.AjaxResult;
+import com.lcyl.system.mapper.ElderMapper;
 import com.lcyl.common.utils.UserThreadLocal;
 import com.lcyl.web.service.AiService;
 import com.lcyl.system.domain.Elder;
@@ -89,6 +96,18 @@ public class WxLoginController extends BaseController {
 
     @Autowired
     private AiService aiService;
+
+    @Autowired
+    private CheckInMapper checkInMapper;
+
+    @Autowired
+    private LcCheckinHealthEvaluateMapper healthEvaluateMapper;
+
+    @Autowired
+    private LcCheckinAbilityEvaluateMapper abilityEvaluateMapper;
+
+    @Autowired
+    private ElderMapper elderMapper;
 
 
 
@@ -431,6 +450,40 @@ public class WxLoginController extends BaseController {
             return AjaxResult.success(new java.util.ArrayList<>());
         }
         return AjaxResult.success(aiService.getHistoryMessages(sessionId));
+    }
+
+    @GetMapping("/healthData/{elderId}")
+    public AjaxResult getHealthData(@PathVariable Long elderId) {
+        Long memberId = UserThreadLocal.getUserId();
+        if (memberId == null) return AjaxResult.error("用户未登录");
+
+        // 1. 权限检查：绑定了该老人才能查看
+        List<com.lcyl.system.domain.Elder> elders = elderMapper.selectElderByMember(memberId);
+        boolean owned = elders.stream().anyMatch(e -> e.getId().equals(elderId));
+        if (!owned) return AjaxResult.error("无权查看该老人的健康数据");
+
+        // 2. 查 check_in 获取 applyId
+        CheckIn checkIn = checkInMapper.selectCheckInByElderId(elderId);
+        if (checkIn == null) {
+            return AjaxResult.success("暂无健康数据");
+        }
+        Long applyId = checkIn.getId();
+
+        // 3. 查健康评估
+        LcCheckinHealthEvaluate healthParam = new LcCheckinHealthEvaluate();
+        healthParam.setApplyId(applyId);
+        java.util.List<LcCheckinHealthEvaluate> healthList = healthEvaluateMapper.selectLcCheckinHealthEvaluateList(healthParam);
+
+        // 4. 查能力评估
+        LcCheckinAbilityEvaluate abilityParam = new LcCheckinAbilityEvaluate();
+        abilityParam.setApplyId(applyId);
+        java.util.List<LcCheckinAbilityEvaluate> abilityList = abilityEvaluateMapper.selectLcCheckinAbilityEvaluateList(abilityParam);
+
+        // 5. 组装
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("healthEvaluate", healthList != null && !healthList.isEmpty() ? healthList.get(0) : null);
+        result.put("abilityEvaluate", abilityList != null && !abilityList.isEmpty() ? abilityList.get(0) : null);
+        return AjaxResult.success(result);
     }
 
     /**

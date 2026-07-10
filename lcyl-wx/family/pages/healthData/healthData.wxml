@@ -1,12 +1,88 @@
 <view class="page">
-  <view class="header">
-    <text class="title">{{elderName || '老人'}} - 健康数据</text>
+  <!-- Tab 导航 -->
+  <view class="tab-bar">
+    <view class="tab-item {{activeTab === 'health' ? 'active' : ''}}" data-tab="health" bindtap="switchTab">健康指标</view>
+    <view class="tab-item {{activeTab === 'ability' ? 'active' : ''}}" data-tab="ability" bindtap="switchTab">能力评估</view>
   </view>
 
-  <view class="card">
-    <view class="card-body">
-      <image class="coming-soon-icon" src="/images/icon-empty.png" />
-      <text class="coming-soon-text">健康数据功能开发中，敬请期待</text>
+  <!-- 内容 -->
+  <view class="content">
+    <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+    <view wx:elif="{{noData}}" class="empty">{{elderName}}暂无健康数据</view>
+
+    <view wx:else>
+      <!-- 健康指标 -->
+      <view wx:if="{{activeTab === 'health'}}" class="card">
+        <view class="card-title">📋 基本健康指标</view>
+        <view wx:if="{{healthData == null}}" class="empty">暂无健康评估数据</view>
+        <view wx:else>
+          <view class="info-row">
+            <text class="label">身高</text>
+            <text class="value">{{healthData.height || '-'}} cm</text>
+          </view>
+          <view class="info-row">
+            <text class="label">体重</text>
+            <text class="value">{{healthData.weight || '-'}} kg</text>
+          </view>
+          <view class="info-row">
+            <text class="label">血压</text>
+            <text class="value">{{healthData.bloodPressure || '-'}} mmHg</text>
+          </view>
+          <view class="info-row">
+            <text class="label">血糖</text>
+            <text class="value">{{healthData.bloodSugar || '-'}} mmol/L</text>
+          </view>
+          <view class="info-row">
+            <text class="label">慢性病</text>
+            <text class="value">{{healthData.chronicDisease || '无'}}</text>
+          </view>
+          <view class="info-row">
+            <text class="label">过敏史</text>
+            <text class="value">{{healthData.allergy || '无'}}</text>
+          </view>
+          <view class="info-row">
+            <text class="label">评估医生</text>
+            <text class="value">{{healthData.evaluateDoctor || '-'}}</text>
+          </view>
+          <view class="info-row">
+            <text class="label">评估时间</text>
+            <text class="value">{{healthData.evaluateTime || '-'}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 能力评估 -->
+      <view wx:if="{{activeTab === 'ability'}}" class="card">
+        <view class="card-title">💪 能力评估</view>
+        <view wx:if="{{abilityData == null}}" class="empty">暂无能力评估数据</view>
+        <view wx:else>
+          <view class="info-row">
+            <text class="label">自理能力评分</text>
+            <text class="value">{{abilityData.selfCareScore || '-'}} 分</text>
+          </view>
+          <view class="info-row">
+            <text class="label">精神状态</text>
+            <text class="value">{{abilityData.mentalStatus || '-'}}</text>
+          </view>
+          <view class="info-row">
+            <text class="label">行动能力</text>
+            <text class="value">{{abilityData.mobility || '-'}}</text>
+          </view>
+          <view class="info-row">
+            <text class="label">护理等级</text>
+            <text class="value">{{abilityData.careLevel || '-'}}</text>
+          </view>
+          <view class="info-row">
+            <text class="label">评估医生</text>
+            <text class="value">{{abilityData.evaluateDoctor || '-'}}</text>
+          </view>
+          <view class="info-row">
+            <text class="label">评估时间</text>
+            <text class="value">{{abilityData.evaluateTime || '-'}}</text>
+          </view>
+        </view>
+      </view>
     </view>
   </view>
 </view>

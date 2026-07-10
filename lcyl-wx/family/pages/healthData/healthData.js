@@ -1,31 +1,56 @@
-const { request } = require('../../../utils/request');
+const { request, verifyToken } = require('../../../utils/request');
 Page({
   data: {
     elderId: '',
     elderName: '',
-    loading: true
+    activeTab: 'health',
+    loading: true,
+    noData: false,
+    healthData: null,
+    abilityData: null
   },
 
   onLoad(options) {
     this.setData({ elderId: options.elderId || '' });
-    this.loadElderInfo();
+    this.loadHealthData();
   },
 
-  loadElderInfo() {
-    request({
-      url: '/wxLogin/getElderBedList',
-      method: 'POST'
-    }).then((res) => {
-      if (res.data && res.data.code === 200) {
-        const list = res.data.data || [];
-        const elder = list.find(item => String(item.id) === this.data.elderId);
-        if (elder) {
-          this.setData({ elderName: elder.name || '' });
+  switchTab(e) {
+    const tab = e.currentTarget.dataset.tab;
+    this.setData({ activeTab: tab });
+  },
+
+  loadHealthData() {
+    const elderId = this.data.elderId;
+    if (!elderId) {
+      this.setData({ loading: false, noData: true });
+      return;
+    }
+
+    verifyToken().then(() => {
+      request({
+        url: '/wxLogin/healthData/' + elderId,
+        method: 'GET'
+      }).then((res) => {
+        if (res.data && res.data.code === 200) {
+          const data = res.data.data || {};
+          const health = data.healthEvaluate;
+          const ability = data.abilityEvaluate;
+
+          this.setData({
+            healthData: health || null,
+            abilityData: ability || null,
+            noData: !health && !ability
+          });
+        } else {
+          this.setData({ noData: true });
         }
-      }
-    }).finally(() => {
-      this.setData({ loading: false });
-    });
+      }).catch(() => {
+        this.setData({ noData: true });
+      }).finally(() => {
+        this.setData({ loading: false });
+      });
+    }).catch(() => {});
   },
 
   goBack() {
