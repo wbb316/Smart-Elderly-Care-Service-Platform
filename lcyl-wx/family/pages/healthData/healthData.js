@@ -43,6 +43,7 @@ Page({
             noData: !health && !ability
           });
         } else {
+          wx.showToast({ title: res.data.msg || '暂无数据', icon: 'none' });
           this.setData({ noData: true });
         }
       }).catch(() => {
@@ -50,7 +51,9 @@ Page({
       }).finally(() => {
         this.setData({ loading: false });
       });
-    }).catch(() => {});
+    }).catch(() => {
+      this.setData({ loading: false, noData: true });
+    });
   },
 
   goBack() {

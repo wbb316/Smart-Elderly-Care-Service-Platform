@@ -465,7 +465,10 @@ public class WxLoginController extends BaseController {
         // 2. 查 check_in 获取 applyId
         CheckIn checkIn = checkInMapper.selectCheckInByElderId(elderId);
         if (checkIn == null) {
-            return AjaxResult.success("暂无健康数据");
+            java.util.Map<String, Object> empty = new java.util.HashMap<>();
+            empty.put("healthEvaluate", null);
+            empty.put("abilityEvaluate", null);
+            return AjaxResult.success(empty);
         }
         Long applyId = checkIn.getId();
 

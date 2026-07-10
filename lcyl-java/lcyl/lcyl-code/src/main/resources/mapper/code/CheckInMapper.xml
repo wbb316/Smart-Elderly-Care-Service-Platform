@@ -253,6 +253,6 @@
 
     <select id="selectCheckInByElderId" resultType="com.lcyl.code.domain.CheckIn">
         <include refid="selectCheckInVo"/>
-        where elder_id = #{elderId}
+        where elder_id = #{elderId} order by create_time desc limit 1
     </select>
 </mapper>
