@@ -22,8 +22,6 @@
         <result property="otherApplyInfo"    column="other_apply_info"    />
         <result property="reviewInfo"    column="review_info"    />
         <result property="updateTime"    column="update_time"    />
-        <result property="elderName"    column="elder_name"    />
-        <result property="elderCardId"    column="elder_card_id"    />
         <result property="currentTaskId"    column="current_task_id"    />
         <result property="processId"    column="process_id"    />
         <result property="currentTaskName"    column="current_task_name"    />
@@ -35,7 +33,7 @@
     </resultMap>
 
     <sql id="selectCheckInVo">
-        select id, check_in_code, title, elder_id, counselor, check_in_time, reason, remark, applicat, dept_no, applicat_id, create_time, flow_status, status, other_apply_info, review_info, update_time, elder_name, elder_card_id, current_task_id, process_id, current_task_name, task_id, evaluation, evaluator,approver,singer from check_in
+        select id, check_in_code, title, elder_id, counselor, check_in_time, reason, remark, applicat, dept_no, applicat_id, create_time, flow_status, status, other_apply_info, review_info, update_time, elder_card_id, current_task_id, process_id, current_task_name, task_id, evaluation, evaluator,approver,singer from check_in
     </sql>
 
     <select id="selectCheckInList" parameterType="CheckIn" resultMap="CheckInResult">
@@ -252,7 +250,7 @@
     </select>
 
     <select id="selectCheckInByElderId" resultType="com.lcyl.code.domain.CheckIn">
-        <include refid="selectCheckInVo"/>
+        select id, elder_id, create_time from check_in
         where elder_id = #{elderId} order by create_time desc limit 1
     </select>
 </mapper>
