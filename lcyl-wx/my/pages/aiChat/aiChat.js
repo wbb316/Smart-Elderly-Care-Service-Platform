@@ -17,11 +17,7 @@ Page({
     const sessionId = `member_${memberId}_${today}`;
     this.setData({ sessionId });
 
-    // 恢复历史消息
-    const app = getApp();
-    const token = app.globalData.token || wx.getStorageSync('token');
-    if (!token) return;
-
+    // 恢复历史消息（无需 verifyToken，后端拦截器会处理）
     request({
       url: '/wxLogin/ai/history',
       method: 'GET',
@@ -51,50 +47,48 @@ Page({
 
     this.scrollToBottom();
 
-    verifyToken().then(() => {
-      request({
-        url: '/wxLogin/ai/ask',
-        method: 'POST',
-        data: {
-          question: userMsg.content,
-          sessionId: this.data.sessionId
-        }
-      }).then((res) => {
-        console.log('完整响应:', JSON.stringify(res));
-        if (res.data && res.data.code === 200) {
-          const data = res.data.data || '';
-          if (typeof data === 'string' && data.indexOf('[CONFIRM]') === 0) {
-            const confirmInfo = data.replace('[CONFIRM]', '');
-            this.setData({
-              messages: [...this.data.messages, {
-                role: 'assistant',
-                content: confirmInfo,
-                needsConfirm: true
-              }]
-            });
-          } else {
-            console.log('AI 回复内容:', data);
-            console.log('消息列表长度:', this.data.messages.length);
-            this.setData({
-              messages: [...this.data.messages, { role: 'assistant', content: data }]
-            }, () => {
-              console.log('setData 完成, 消息数:', this.data.messages.length);
-            });
-          }
-        } else {
+    request({
+      url: '/wxLogin/ai/ask',
+      method: 'POST',
+      data: {
+        question: userMsg.content,
+        sessionId: this.data.sessionId
+      }
+    }).then((res) => {
+      console.log('完整响应:', JSON.stringify(res));
+      if (res.data && res.data.code === 200) {
+        const data = res.data.data || '';
+        if (typeof data === 'string' && data.indexOf('[CONFIRM]') === 0) {
+          const confirmInfo = data.replace('[CONFIRM]', '');
           this.setData({
-            messages: [...this.data.messages, { role: 'assistant', content: res.data.msg || '服务出错了，请稍后再试' }]
+            messages: [...this.data.messages, {
+              role: 'assistant',
+              content: confirmInfo,
+              needsConfirm: true
+            }]
+          });
+        } else {
+          console.log('AI 回复内容:', data);
+          console.log('消息列表长度:', this.data.messages.length);
+          this.setData({
+            messages: [...this.data.messages, { role: 'assistant', content: data }]
+          }, () => {
+            console.log('setData 完成, 消息数:', this.data.messages.length);
           });
         }
-      }).catch(() => {
+      } else {
         this.setData({
-          messages: [...this.data.messages, { role: 'assistant', content: '网络异常，请稍后重试' }]
+          messages: [...this.data.messages, { role: 'assistant', content: res.data.msg || '服务出错了，请稍后再试' }]
         });
-      }).finally(() => {
-        this.setData({ loading: false });
-        this.scrollToBottom();
+      }
+    }).catch(() => {
+      this.setData({
+        messages: [...this.data.messages, { role: 'assistant', content: '网络异常，请稍后重试' }]
       });
-    }).catch(() => {});
+    }).finally(() => {
+      this.setData({ loading: false });
+      this.scrollToBottom();
+    });
   },
 
   confirmAction() {

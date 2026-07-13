@@ -47,31 +47,29 @@ Page({
 
     this.setData({ submitting: true });
 
-    verifyToken().then(() => {
-      request({
-        url: '/wxLogin/registerElder',
-        method: 'POST',
-        data: {
-          name: this.data.name,
-          idCardNo: this.data.idCardNo,
-          age: this.data.age,
-          sex: this.data.sex,
-          phone: this.data.phone,
-          relation: this.data.relation,
-          remark: this.data.remark
-        }
-      }).then((res) => {
-        if (res.data && res.data.code === 200) {
-          wx.showToast({ title: '提交成功，等待审核', icon: 'success', duration: 2000 });
-          setTimeout(() => { wx.navigateBack({ delta: 1 }); }, 2000);
-        } else {
-          wx.showToast({ title: res.data.msg || '提交失败', icon: 'none' });
-        }
-      }).catch(() => {
-        wx.showToast({ title: '网络异常', icon: 'none' });
-      }).finally(() => {
-        this.setData({ submitting: false });
-      });
+    request({
+      url: '/wxLogin/registerElder',
+      method: 'POST',
+      data: {
+        name: this.data.name,
+        idCardNo: this.data.idCardNo,
+        age: this.data.age,
+        sex: this.data.sex,
+        phone: this.data.phone,
+        relation: this.data.relation,
+        remark: this.data.remark
+      }
+    }).then((res) => {
+      if (res.data && res.data.code === 200) {
+        wx.showToast({ title: '提交成功，等待审核', icon: 'success', duration: 2000 });
+        setTimeout(() => { wx.navigateBack({ delta: 1 }); }, 2000);
+      } else {
+        wx.showToast({ title: res.data.msg || '提交失败', icon: 'none' });
+      }
+    }).catch(() => {
+      wx.showToast({ title: '网络异常', icon: 'none' });
+    }).finally(() => {
+      this.setData({ submitting: false });
     });
   }
 });

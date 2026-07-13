@@ -1,4 +1,4 @@
-const { request, verifyToken } = require('../../../utils/request');
+const { request } = require('../../../utils/request');
 Page({
   data: {
     elderId: '',
@@ -27,32 +27,28 @@ Page({
       return;
     }
 
-    verifyToken().then(() => {
-      request({
-        url: '/wxLogin/healthData/' + elderId,
-        method: 'GET'
-      }).then((res) => {
-        if (res.data && res.data.code === 200) {
-          const data = res.data.data || {};
-          const health = data.healthEvaluate;
-          const ability = data.abilityEvaluate;
+    request({
+      url: '/wxLogin/healthData/' + elderId,
+      method: 'GET'
+    }).then((res) => {
+      if (res.data && res.data.code === 200) {
+        const data = res.data.data || {};
+        const health = data.healthEvaluate;
+        const ability = data.abilityEvaluate;
 
-          this.setData({
-            healthData: health || null,
-            abilityData: ability || null,
-            noData: !health && !ability
-          });
-        } else {
-          wx.showToast({ title: res.data.msg || '暂无数据', icon: 'none' });
-          this.setData({ noData: true });
-        }
-      }).catch(() => {
+        this.setData({
+          healthData: health || null,
+          abilityData: ability || null,
+          noData: !health && !ability
+        });
+      } else {
+        wx.showToast({ title: res.data.msg || '暂无数据', icon: 'none' });
         this.setData({ noData: true });
-      }).finally(() => {
-        this.setData({ loading: false });
-      });
+      }
     }).catch(() => {
-      this.setData({ loading: false, noData: true });
+      this.setData({ noData: true });
+    }).finally(() => {
+      this.setData({ loading: false });
     });
   },
 
