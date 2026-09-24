@@ -136,6 +136,7 @@
           <el-upload
               class="avatar-uploader"
               :action="uploadUrl"
+              :headers="uploadHeaders"
               :show-file-list="false"
               :on-success="handleAvatarSuccess"
               :before-upload="beforeAvatarUpload"
@@ -178,6 +179,9 @@
 
 <script setup lang="ts" name="NursingItem">
 const uploadUrl = import.meta.env.VITE_APP_BASE_API + '/upload'
+// /upload 已移出匿名放行清单，el-upload 需显式携带管理端 token
+import { getToken } from '@/utils/auth'
+const uploadHeaders = { Authorization: 'Bearer ' + getToken() }
 import type { NursingItem, ItemQueryParams } from "@/types/api/code/item"
 import { listItem, getItem, delItem, addItem, updateItem, checkItemNameUnique } from "@/api/code/nursingItem"
 import { checkItemIsReferenced } from "@/api/code/plan"

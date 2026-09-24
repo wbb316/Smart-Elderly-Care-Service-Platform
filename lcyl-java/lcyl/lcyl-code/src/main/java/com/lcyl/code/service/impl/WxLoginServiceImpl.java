@@ -55,6 +55,8 @@ import com.lcyl.framework.web.service.TokenService;
 import com.lcyl.system.domain.Elder;
 import com.lcyl.system.service.IElderService;
 
+import javax.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,9 +70,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
+@Slf4j
 @Service
 public class WxLoginServiceImpl implements WxLoginService
 {
+    /**
+     * 启动时提醒：当前支付为模拟实现（payOrder/payBill 直接把订单/账单置为已支付，
+     * 不调用微信支付网关、无支付回调验签）。仅可用于演示/开发环境，
+     * 生产环境必须接入真实微信支付，否则客户端可自行把订单标记为已支付。
+     */
+    @PostConstruct
+    public void warnMockPayment() {
+        log.warn("============================================================");
+        log.warn("  [重要提醒] 支付功能当前为【模拟实现】");
+        log.warn("  未接入微信支付网关，无统一下单与回调验签，");
+        log.warn("  客户端可直接把订单/账单置为已支付。");
+        log.warn("  请勿用于生产环境，上线前必须替换为真实支付。");
+        log.warn("============================================================");
+    }
+
     @Autowired
     private MemberMapper memberMapper;
 
@@ -427,10 +445,10 @@ public class WxLoginServiceImpl implements WxLoginService
         bill.setTradeStatus("1");
         bill.setUpdateBy(String.valueOf(memberId));
         bill.setUpdateTime(DateUtils.getNowDate());
-        int rows = billMapper.updateBill(bill);
+        int rows = billMapper.updatePaidBill(bill);
         if (rows <= 0)
         {
-            throw new ServiceException("账单支付成功后更新状态失败");
+            throw new ServiceException("账单已被支付或状态已变更，请刷新后重试");
         }
 
         if ("1".equals(bill.getBillType()) && bill.getElderId() != null && bill.getPayableAmount() != null)
@@ -461,6 +479,7 @@ public class WxLoginServiceImpl implements WxLoginService
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int applyRefund(WxRefundApplyDTO dto)
     {
         Long memberId = UserThreadLocal.getUserId();

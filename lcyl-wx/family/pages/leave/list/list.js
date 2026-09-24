@@ -13,10 +13,8 @@ Page({
     loading: false
   },
 
-  onLoad() {
-    this.loadList()
-  },
-
+  // 首屏加载统一放在 onShow：onShow 首次必定在 onLoad 之后触发，
+  // 两处都调会导致冷启动重复请求
   onShow() {
     this.loadList()
   },

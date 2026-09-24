@@ -19,8 +19,7 @@ Page({
 
   onLoad(options) {
     verifyToken().then(() => {
-    this.getServiceList()
-    this.getFamilyList()
+    // 列表交给 onShow（其守卫 originalList.length === 0 在首次加载时为真）
     this.setData({ nowDate: new Date().toISOString().slice(0, 10) })
     }).catch(() => {});
   },

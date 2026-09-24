@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,10 @@ public class TokenService
 {
     private static final Logger log = LoggerFactory.getLogger(TokenService.class);
 
+    /** 开发默认密钥；生产环境必须通过环境变量 TOKEN_SECRET 覆盖 */
+    private static final String DEV_PLACEHOLDER_SECRET =
+            "lcyl-dev-only-secret-please-set-TOKEN_SECRET-in-production";
+
     // 令牌自定义标识
     @Value("${token.header}")
     private String header;
@@ -57,6 +62,22 @@ public class TokenService
 
     @Autowired
     private RedisCache redisCache;
+
+    /**
+     * 启动时校验令牌密钥：若仍为开发默认值则打印醒目告警。
+     * 密钥泄露会导致任何人可伪造登录令牌，生产环境务必注入 TOKEN_SECRET。
+     */
+    @PostConstruct
+    public void checkTokenSecret() {
+        if (DEV_PLACEHOLDER_SECRET.equals(secret)) {
+            log.warn("============================================================");
+            log.warn("  [安全告警] token.secret 正在使用开发默认值！");
+            log.warn("  生产环境必须通过环境变量 TOKEN_SECRET 注入独立密钥，");
+            log.warn("  否则任何人可伪造登录令牌。生成方式：");
+            log.warn("    openssl rand -base64 48");
+            log.warn("============================================================");
+        }
+    }
 
     /**
      * 获取用户身份信息

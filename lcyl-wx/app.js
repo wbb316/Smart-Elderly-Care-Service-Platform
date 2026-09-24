@@ -1,7 +1,10 @@
 // app.js
+const { getBaseUrl } = require('./config')
+
 App({
   globalData: {
-    baseUrl: 'http://localhost:8080',
+    // 按微信运行环境自动选择（开发/体验/正式），见 config.js
+    baseUrl: getBaseUrl(),
     token: '',
     userName: null
   },

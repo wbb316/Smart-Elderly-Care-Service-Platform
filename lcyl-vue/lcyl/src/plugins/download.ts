@@ -14,12 +14,13 @@ export default {
       params: { fileName: name, delete: isDelete },
       responseType: 'blob'
     }).then((res: any) => {
-      const isBlob = blobValidate(res.data)
+      // 同上：res 已是 Blob；Blob 上没有 headers，文件名用入参
+      const isBlob = blobValidate(res)
       if (isBlob) {
-        const blob = new Blob([res.data])
-        this.saveAs(blob, decodeURIComponent(res.headers['download-filename']))
+        const blob = new Blob([res])
+        this.saveAs(blob, decodeURIComponent(name))
       } else {
-        this.printErrMsg(res.data)
+        this.printErrMsg(res)
       }
     }).catch(() => {
       ElMessage.error('下载文件失败，请重试')
@@ -32,12 +33,13 @@ export default {
       params: { resource },
       responseType: 'blob'
     }).then((res: any) => {
-      const isBlob = blobValidate(res.data)
+      // 同上：res 已是 Blob；文件名取资源路径的最后一段
+      const isBlob = blobValidate(res)
       if (isBlob) {
-        const blob = new Blob([res.data])
-        this.saveAs(blob, decodeURIComponent(res.headers['download-filename']))
+        const blob = new Blob([res])
+        this.saveAs(blob, decodeURIComponent(resource.split('/').pop() || 'download'))
       } else {
-        this.printErrMsg(res.data)
+        this.printErrMsg(res)
       }
     }).catch(() => {
       ElMessage.error('下载资源失败，请重试')
@@ -50,12 +52,14 @@ export default {
       url: url,
       responseType: 'blob'
     }).then((res: any) => {
-      const isBlob = blobValidate(res.data)
+      // 响应拦截器已把 blob 解包返回（utils/request.ts 对 responseType=blob 直接 return res.data），
+      // 因此这里的 res 本身就是 Blob，不能再取 res.data（否则 blobValidate(undefined) 抛 TypeError）
+      const isBlob = blobValidate(res)
       if (isBlob) {
-        const blob = new Blob([res.data], { type: 'application/zip' })
+        const blob = new Blob([res], { type: 'application/zip' })
         this.saveAs(blob, name)
       } else {
-        this.printErrMsg(res.data)
+        this.printErrMsg(res)
       }
       downloadLoadingInstance.close()
     }).catch((r: any) => {

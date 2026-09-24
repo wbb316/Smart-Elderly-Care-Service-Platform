@@ -268,11 +268,6 @@ const submitApproval = () => {
       try {
         submitLoading.value = true
 
-          checkInId: currentCheckInId.value,
-          approveResult: approveForm.approveResult,
-          approveRemark: approveForm.approveRemark
-        })
-
         // 调用后端审批接口
         const res = await approveCheckin(currentCheckInId.value, {
           approveResult: approveForm.approveResult,

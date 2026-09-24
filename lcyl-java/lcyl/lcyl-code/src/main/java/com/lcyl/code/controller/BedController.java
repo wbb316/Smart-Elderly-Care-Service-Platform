@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
@@ -31,7 +32,7 @@ import java.util.List;
 @RequestMapping("/system/bed")
 public class BedController extends BaseController
 {
-    @Autowired
+    @Resource
     private BedService bedService;
 
     @PreAuthorize("@ss.hasPermi('system:bed:query')")
@@ -80,20 +81,24 @@ public class BedController extends BaseController
     /**
      * 新增床位表
      */
-    @Autowired
+    @Resource
     private LcRoomMapper roomMapper;
-    @Autowired
+    @Resource
     private LcRoomTypeMapper roomTypeMapper;
     @PreAuthorize("@ss.hasPermi('system:bed:add')")
     @Log(title = "床位表", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody Bed bed)
     {
-            // 1. 调用你写的校验方法，判断床位数是否超限
-            int checkResult = bedService.insertBed(bed);
-            // 2. 校验不通过：返回错误提示
-            if (checkResult == 1) {
-                // 查询房间/房型信息，返回更友好的提示（可选，提升体验）
+        // insertBed 内部已包含「房型床位是否超限」的校验，并在未满时完成插入：
+        //   返回 1 = 已达上限（未插入）
+        //   返回 0 = 插入成功
+        // 注意：原实现把「校验」和「新增」当成两个动作各调一次 insertBed，
+        //      导致未满时真实插入两条相同床位，故合并为一次调用。
+        try {
+            int result = bedService.insertBed(bed);
+            if (result == 1) {
+                // 查询房间/房型信息，返回更友好的提示
                 Room room = roomMapper.selectLcRoomById(bed.getRoomId());
                 if (room != null) {
                     LcRoomType roomType = roomTypeMapper.selectLcRoomTypeById(room.getRoomTypeId());
@@ -105,14 +110,10 @@ public class BedController extends BaseController
                 }
                 return AjaxResult.error("新增失败！当前房型已达上限");
             }
-            // 3. 校验通过：执行实际的新增操作
-        try {
-            bedService.insertBed ( bed ); // 实际新增床位的方法
             return AjaxResult.success("新增床位成功");
-        }catch (Exception e){
+        } catch (Exception e) {
             return AjaxResult.error("新增床位失败：" + e.getMessage());
         }
-
     }
 
     /**

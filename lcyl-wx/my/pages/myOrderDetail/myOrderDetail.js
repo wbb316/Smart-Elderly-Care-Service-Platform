@@ -31,7 +31,7 @@ Page({
 
   onLoad(options) {
     this.orderId = options.id
-    this.getOrderDetail()
+    // 不在这里请求：onShow 首次会在 onLoad 之后触发（orderId 是实例属性，同步可用）
   },
 
   onShow() {

@@ -25,7 +25,7 @@ Page({
   },
 
   onLoad(options) {
-    this.getBedType();
+    // 不在这里请求：onShow 首次会在 onLoad 之后触发，两处都调会重复请求
   },
 
   onImageError() {

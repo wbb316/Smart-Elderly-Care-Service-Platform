@@ -68,6 +68,19 @@ public class FileController {
         }
     }
 
+    /**
+     * 【小程序专用】图片上传
+     *
+     * 为什么单独开一个端点：小程序用的是自己的 JWT（由 UserInterceptor 校验），
+     * 而 Spring Security 的 anyRequest().authenticated() 认的是管理端 token。
+     * 路径落在 /wxLogin/** 下即可被 UserInterceptor 覆盖，
+     * 这样 /upload 就能从 permitAll 放行清单里移除，不再对外裸奔。
+     */
+    @PostMapping("/wxLogin/upload")
+    public Result<String> wxUpload(MultipartFile file) {
+        return upload(file);
+    }
+
 //    @PostMapping("/multipleUpload")
 //    public Result multipleUpload(MultipartFile[] files) throws IOException {
 //        // 判断是否选择文件

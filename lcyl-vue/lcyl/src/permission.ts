@@ -20,11 +20,19 @@ const isWhiteList = (path: string): boolean => {
 function hasRoutePermission(route: any): boolean {
   const matched = route.matched || []
   for (const record of matched) {
-    const perms: string[] = record.permissions || record.meta?.permissions
+    // 权限必须声明在 meta.permissions 里。
+    // 原因：Vue Router 4 会丢弃路由配置顶层的自定义字段，
+    //      匹配到的 record 上 record.permissions 恒为 undefined，
+    //      之前写在顶层的 permissions 从未生效过。
+    const perms: string[] = record.meta?.permissions
     if (perms && perms.length > 0) {
-      const userPerms = useUserStore().permissions
+      const userPerms: string[] = useUserStore().permissions
       if (!userPerms || userPerms.length === 0) {
         return false
+      }
+      // 超级管理员拥有 "*:*:*"；原实现用 includes 精确匹配，会把超管挡在门外
+      if (userPerms.includes('*:*:*')) {
+        continue
       }
       if (!perms.some((p: string) => userPerms.includes(p))) {
         return false

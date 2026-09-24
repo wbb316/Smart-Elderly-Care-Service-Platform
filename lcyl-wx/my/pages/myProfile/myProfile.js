@@ -117,9 +117,14 @@ Page({
     })
 
     wx.uploadFile({
-      url: buildUrl('/upload'),
+      // 走 /wxLogin/** 通道：由后端 UserInterceptor 校验小程序 token
+      // （/upload 已从匿名放行清单移除，此处必须带 Authorization）
+      url: buildUrl('/wxLogin/upload'),
       filePath: filePath,
       name: 'file',
+      header: {
+        'Authorization': app.globalData.token || wx.getStorageSync('token')
+      },
       success: (uploadRes) => {
         let result = {}
 

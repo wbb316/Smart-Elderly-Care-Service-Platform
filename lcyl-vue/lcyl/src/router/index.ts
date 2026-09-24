@@ -177,48 +177,48 @@ export const constantRoutes = [
         path:'approvalAdmin',
         component: () => import('@/views/code/checkout/applyApprovalAdmin.vue'),
         name: 'ApprovalAdmin',
-        permissions: ['nurse_leader'], // 👈 直接用后端角色KEY
-        meta: { title: '护理组长审批' }
+        // 权限声明放在 meta 里；值与后端 RetreatController 的 @ss.hasPermi('code:checkout:query') 对齐
+        meta: { title: '护理组长审批', permissions: ['code:checkout:query'] }
       },
       // 法务解除合同
       {
         path:'contractTerm',
         component: () => import('@/views/code/checkout/contractTerm.vue'),
         name: 'ContractTerm',
-        permissions: ['legal_staff'], //
-        meta: { title: '法务合同审批' }
+        // 权限声明放在 meta 里；值与后端 RetreatController 的 @ss.hasPermi('code:checkout:query') 对齐
+        meta: { title: '法务合同审批', permissions: ['code:checkout:query'] }
       },
       // 结算员调整账单
       {
         path:'billAdjustment',
         component: () => import('@/views/code/checkout/billAdjustment.vue'),
         name: 'BillAdjustment',
-        permissions: ['settleman_staff'], //
-        meta: { title: '账单调整' }
+        // 权限声明放在 meta 里；值与后端 RetreatController 的 @ss.hasPermi('code:checkout:query') 对齐
+        meta: { title: '账单调整', permissions: ['code:checkout:query'] }
       },
       // 结算组长审批
       {
         path:'billApproval',
         component: () => import('@/views/code/checkout/billApproval.vue'),
         name: 'BillApproval',
-        permissions: ['settleman_leader'], //
-        meta: { title: '结算组长审批' }
+        // 权限声明放在 meta 里；值与后端 RetreatController 的 @ss.hasPermi('code:checkout:query') 对齐
+        meta: { title: '结算组长审批', permissions: ['code:checkout:query'] }
       },
       // 副院长审批
       {
         path:'checkoutApproval',
         component: () => import('@/views/code/checkout/checkoutApproval.vue'),
         name: 'CheckoutApproval',
-        permissions: ['vice_dean'], //
-        meta: { title: '副院长审批' }
+        // 权限声明放在 meta 里；值与后端 RetreatController 的 @ss.hasPermi('code:checkout:query') 对齐
+        meta: { title: '副院长审批', permissions: ['code:checkout:query'] }
       },
       // 费用结清
       {
         path:'finalSettlement',
         component: () => import('@/views/code/checkout/finalSettlement.vue'),
         name: 'FinalSettlement',
-        permissions: ['settleman_staff', 'settleman_leader'],
-        meta: { title: '费用结清' }
+        // 权限声明放在 meta 里；值与后端 RetreatController 的 @ss.hasPermi('code:checkout:query') 对齐
+        meta: { title: '费用结清', permissions: ['code:checkout:query'] }
       },
         //清算成功
       {

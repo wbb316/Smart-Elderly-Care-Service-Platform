@@ -102,8 +102,10 @@ spring:
 token:
   # 令牌自定义标识
   header: Authorization
-  # 令牌密钥
-  secret: K9x2M7pQ4vR8wY1aC5eH3jN6bT0mL4sX9zA2dF7gJ1kP5oU3rW6yB8cV0nQ4xZ
+  # 令牌密钥（生产环境必须通过环境变量 TOKEN_SECRET 注入独立密钥）
+  # 生成方式：openssl rand -base64 48
+  # 未注入时使用开发默认值，应用启动会打印安全告警
+  secret: ${TOKEN_SECRET:lcyl-dev-only-secret-please-set-TOKEN_SECRET-in-production}
   # 令牌有效期（默认120分钟）
   expireTime: 120
 

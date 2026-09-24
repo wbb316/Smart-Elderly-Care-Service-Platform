@@ -191,8 +191,10 @@ function handlePasteCapture(e: ClipboardEvent) {
 function insertImage(file: File) {
   const formData = new FormData()
   formData.append("file", file)
-  request.post("/common/upload", formData, { headers: { "Content-Type": "multipart/form-data" } }).then((res: { data: UploadFileResult }) => {
-    handleUploadSuccess(res.data as UploadFileResult, file)
+  // 响应拦截器已返回业务体（utils/request.ts 的 return Promise.resolve(res.data)），
+  // 因此 res 就是 { code, fileName, url, ... }，不能再取 res.data（会得到 undefined）
+  request.post("/common/upload", formData, { headers: { "Content-Type": "multipart/form-data" } }).then((res: any) => {
+    handleUploadSuccess(res as UploadFileResult, file)
   }).catch(() => {
     ElMessage.error('图片上传失败')
   })

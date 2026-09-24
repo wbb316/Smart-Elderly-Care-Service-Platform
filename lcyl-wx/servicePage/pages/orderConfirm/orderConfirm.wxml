@@ -32,5 +32,5 @@
   </view>
 
   <!-- 提交订单按钮 -->
-  <button class="submit-btn" bindtap="submitOrder">提交订单</button>
+  <button class="submit-btn" bindtap="submitOrder" disabled="{{submitting}}">{{submitting ? '提交中...' : '提交订单'}}</button>
 </view>

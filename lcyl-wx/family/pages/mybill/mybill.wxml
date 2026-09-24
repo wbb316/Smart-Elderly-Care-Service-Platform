@@ -47,7 +47,8 @@
       </view>
       <view class="btn-group">
         <button class="btn detail-btn" bindtap="goToBill" data-id="{{item.id}}">查看明细</button>
-        <button wx:if="{{item.tradeStatus === 0}}" class="btn pay-btn" bindtap="goPay" data-id="{{item.id}}">去支付</button>
+        <!-- tradeStatus 后端返回的是字符串 "0"，必须用严格比较字符串，否则按钮永不渲染 -->
+        <button wx:if="{{item.tradeStatus === '0'}}" class="btn pay-btn" bindtap="goPay" data-id="{{item.id}}">去支付</button>
       </view>
     </view>
   </view>

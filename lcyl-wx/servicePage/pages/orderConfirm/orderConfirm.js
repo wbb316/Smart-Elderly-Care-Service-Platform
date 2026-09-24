@@ -6,7 +6,8 @@ Page({
     familyName: "",
     serviceTime: "",
     remark: "",
-    orderId: ""
+    orderId: "",
+    submitting: false   // 防重复提交标记
   },
 
   onLoad(options) {
@@ -29,13 +30,17 @@ Page({
   },
 
   submitOrder() {
+    // 防重复提交：资金相关接口，连点会生成多张订单
+    if (this.data.submitting) return
+
     const data = this.data
     if (!data.familyId || !data.detail.id || !data.serviceTime) {
       wx.showToast({ title: "请完善下单信息", icon: "none" })
       return
     }
 
-    wx.showLoading({ title: "提交中..." })
+    this.setData({ submitting: true })
+    wx.showLoading({ title: "提交中...", mask: true })
     request({
       url: "/wxLogin/createOrder",
       method: "POST",
@@ -77,6 +82,8 @@ Page({
     }).catch(() => {
       wx.hideLoading()
       wx.showToast({ title: "网络异常，请稍后重试", icon: "none" })
+    }).finally(() => {
+      this.setData({ submitting: false })
     })
   }
 })

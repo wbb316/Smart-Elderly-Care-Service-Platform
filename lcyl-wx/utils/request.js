@@ -1,7 +1,9 @@
 const app = getApp();
+const envConfig = require('../config');
 
 function getBaseUrl() {
-  return (app && app.globalData && app.globalData.baseUrl) || 'http://localhost:8080';
+  // 优先用 app.globalData（启动时按环境写入），取不到时回退到环境配置
+  return (app && app.globalData && app.globalData.baseUrl) || envConfig.getBaseUrl();
 }
 
 function buildUrl(path) {
@@ -11,16 +13,69 @@ function buildUrl(path) {
 }
 
 /**
- * 向后端验证 token 是否有效。有效则 resolve，无效/过期则跳转登录页并 reject
+ * 解码 JWT payload（仅读取过期时间等声明，不做签名校验）。
+ * 失败返回 null，调用方会回退到后端校验，不影响原有逻辑。
+ */
+function decodeJwtPayload(token) {
+  try {
+    var parts = token.split('.');
+    if (parts.length !== 3) return null;
+    var b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4 !== 0) b64 += '=';
+    var table = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    var binary = '';
+    for (var i = 0; i < b64.length; i += 4) {
+      var a = table.indexOf(b64.charAt(i));
+      var b = table.indexOf(b64.charAt(i + 1));
+      var c = table.indexOf(b64.charAt(i + 2));
+      var d = table.indexOf(b64.charAt(i + 3));
+      if (a === -1 || b === -1) return null;
+      binary += String.fromCharCode((a << 2) | (b >> 4));
+      if (c !== -1 && c !== 64) binary += String.fromCharCode(((b & 15) << 4) | (c >> 2));
+      if (d !== -1 && d !== 64) binary += String.fromCharCode(((c & 3) << 6) | d);
+    }
+    return JSON.parse(binary);
+  } catch (e) {
+    return null;
+  }
+}
+
+// 本地快路径的提前量（秒）：exp 剩余大于该值视为"安全未过期"，直接放行。
+// 小于该值时仍走后端校验，保证与原来"过期必跳登录"的逻辑完全一致。
+var LOCAL_VERIFY_GRACE_SECONDS = 10 * 60;
+
+/**
+ * 向后端验证 token 是否有效。有效则 resolve，无效/过期则跳转登录页并 reject。
+ *
+ * 快路径：token 为 JWT 且本地 exp 未过期 → 直接 resolve（0 次网络往返）。
+ *         不在这里调 refreshSession：页面本来就会显式刷新，重复调用会翻倍。
+ * 慢路径：token 快过期 / 无法本地解析 → 请求后端 checkToken 校验，过期则跳登录页。
+ *
+ * 网络异常与服务端错误**不再**判定为登录过期：
+ *   原实现里 wx.request 的 fail（断网、超时）也会清 token 并强制跳登录页，
+ *   弱网抖动就把用户踢下线。现在只有明确的 401/令牌无效才清会话。
+ *   此外后端每次请求仍会校验 token（401 兜底跳登录），语义不变。
  */
 function verifyToken() {
-  return new Promise((resolve, reject) => {
-    const token = app.globalData.token || wx.getStorageSync('token');
+  return new Promise(function (resolve, reject) {
+    var token = app.globalData.token || wx.getStorageSync('token');
     if (!token) {
       handleTokenExpired();
       reject(new Error('未登录'));
       return;
     }
+
+    // 本地快路径：JWT exp 未过期则直接放行，跳过网络往返
+    var payload = decodeJwtPayload(token);
+    if (payload && payload.exp) {
+      var nowSec = Math.floor(Date.now() / 1000);
+      if (payload.exp - nowSec > LOCAL_VERIFY_GRACE_SECONDS) {
+        resolve();
+        return;
+      }
+    }
+
+    // 慢路径：快过期或无法本地判断 → 走后端校验（与原逻辑一致）
     wx.request({
       url: buildUrl('/wxLogin/checkToken'),
       method: 'GET',
@@ -28,13 +83,18 @@ function verifyToken() {
       success: function (res) {
         if (res.statusCode === 200 && res.data && res.data.code === 200) {
           resolve();
-        } else {
+          return;
+        }
+        // 只有明确的"未授权/令牌无效"才算过期；服务端 5xx 等异常不应清会话
+        if (isTokenExpired(res)) {
           handleTokenExpired();
           reject(new Error('令牌无效'));
+        } else {
+          reject(new Error('校验失败'));
         }
       },
       fail: function () {
-        handleTokenExpired();
+        // 网络异常 ≠ 登录过期：不清 token、不跳登录页，交由调用方决定是否重试
         reject(new Error('网络错误'));
       }
     });

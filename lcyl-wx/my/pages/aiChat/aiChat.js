@@ -1,4 +1,4 @@
-const { request, verifyToken } = require('../../../utils/request');
+const { request, verifyToken, buildUrl } = require('../../../utils/request');
 const app = getApp();
 
 Page({
@@ -100,7 +100,7 @@ Page({
 
     const app = getApp();
     wx.request({
-      url: 'http://localhost:8080/wxLogin/ai/confirm',
+      url: buildUrl('/wxLogin/ai/confirm'),
       method: 'POST',
       data: { sessionId: this.data.sessionId },
       header: { 'Authorization': app.globalData.token || wx.getStorageSync('token') },
@@ -129,7 +129,7 @@ Page({
   cancelAction() {
     const app = getApp();
     wx.request({
-      url: 'http://localhost:8080/wxLogin/ai/cancel',
+      url: buildUrl('/wxLogin/ai/cancel'),
       method: 'POST',
       data: { sessionId: this.data.sessionId },
       header: { 'Authorization': app.globalData.token || wx.getStorageSync('token') },

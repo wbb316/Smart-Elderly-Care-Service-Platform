@@ -111,7 +111,9 @@ public class SecurityConfig
             .authorizeHttpRequests((requests) -> {
                 permitAllUrl.getUrls().forEach(url -> requests.antMatchers(url).permitAll());
                 // 对于登录login 注册register 验证码captchaImage 允许匿名访问
-                requests.antMatchers("/login", "/register", "/captchaImage","/wxLogin/**", "/upload", "/uploadContractPdf").permitAll()
+                // 注意：/upload、/uploadContractPdf 已移出放行清单（原为 permitAll，任何人无需登录即可上传）。
+                // 小程序端改用 /wxLogin/upload（由 UserInterceptor 校验小程序 JWT）。
+                requests.antMatchers("/login", "/register", "/captchaImage","/wxLogin/**").permitAll()
                     // 静态资源，可匿名访问
                     .antMatchers(HttpMethod.GET, "/", "/*.html", "/**/*.html", "/**/*.css", "/**/*.js", "/profile/**").permitAll()
                     .antMatchers("/swagger-ui.html", "/swagger-resources/**", "/webjars/**", "/*/api-docs").permitAll()

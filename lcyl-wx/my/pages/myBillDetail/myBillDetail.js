@@ -15,7 +15,7 @@ Page({
     this.setData({
       id: options.id || ""
     });
-    this.getBillDetail();
+    // 不在这里请求：下方的 onShow 首次会在 onLoad 之后触发（setData 同步更新 data）
   },
 
   onShow() {
